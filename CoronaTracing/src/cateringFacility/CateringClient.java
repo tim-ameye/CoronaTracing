@@ -6,7 +6,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.Scanner;
 
-public class Main {
+public class CateringClient {
 /*
  * private int businessNumber;
 	private String name;
@@ -15,11 +15,12 @@ public class Main {
 
  */
 	
-	 
+	
+
 	
 	public static void main(String[] args) {
+		RegistrarInterface server;
 		Scanner sc = new Scanner(System.in);
-		ServerInterface server;
 		
 		System.out.println("Please enter business number: ");
 		int businessNumber = sc.nextInt();
@@ -35,8 +36,9 @@ public class Main {
 			cateringFacility.testConnection("Test from cateringside");
 			
 			Registry myRegistry = LocateRegistry.getRegistry("localhost", 55545);
-			server = (ServerInterface) myRegistry.lookup("server"); 
+			server = (RegistrarInterface) myRegistry.lookup("Registrar"); 
 			
+			server.registerCateringFacility(cateringFacility);
 			
 			
 		} catch (RemoteException e) {

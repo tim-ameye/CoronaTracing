@@ -5,9 +5,12 @@ import java.rmi.server.UnicastRemoteObject;
 
 public class Registrar extends UnicastRemoteObject implements RegistrarInterface{
 
-	protected Registrar() throws RemoteException {
+	private Database db;
+	
+	
+	protected Registrar(Database db) throws RemoteException {
 		super();
-		// TODO Auto-generated constructor stub
+		this.db = db;
 	}
 
 }

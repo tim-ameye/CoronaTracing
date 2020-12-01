@@ -4,6 +4,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.logging.Logger;
 
+import Visitor.VisitorInterface;
 import cateringFacility.CateringFacility;
 import cateringFacility.CateringInterface;
 import cateringFacility.RegistrarInterface;
@@ -37,11 +38,11 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 
 
 	@Override
-	public boolean registerVisitor() throws RemoteException {
+	public boolean registerVisitor(VisitorInterface v) throws RemoteException {
 		Logger logger = Logger.getLogger("Registrar"); 
 		logger.info("[REGISTRAR] trying to register a visitor");
 		//TODO writing CF to database
-		cf.testConnection("Hello visitor, registrar here");
+		v.testConnection("Hello visitor, registrar here");
 		
 		return false;
 	}

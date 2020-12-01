@@ -1,10 +1,13 @@
 package cateringFacility;
 
+import java.io.IOException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.Scanner;
+
+import com.google.zxing.WriterException;
 
 public class CateringClient {
 /*
@@ -30,9 +33,10 @@ public class CateringClient {
 		String adress = sc.nextLine();
 		System.out.println("Please enter business phoneNumber: ");
 		String phoneNumber = sc.nextLine();
+		CateringFacility cateringFacility = null;
 		
 		try {
-			CateringFacility cateringFacility = new CateringFacility(businessNumber, name, adress, phoneNumber);
+			cateringFacility = new CateringFacility(businessNumber, name, adress, phoneNumber);
 			cateringFacility.testConnection("Test from cateringside");
 			
 			Registry myRegistry = LocateRegistry.getRegistry("localhost", 55545);
@@ -47,6 +51,13 @@ public class CateringClient {
 			e.printStackTrace();
 		}
 		
+		 try {
+	            cateringFacility.generateQRCodeImage("This is my first QR Code", 350, 350, "./QR.png");
+	        } catch (WriterException e) {
+	            System.out.println("Could not generate QR Code, WriterException :: " + e.getMessage());
+	        } catch (IOException e) {
+	            System.out.println("Could not generate QR Code, IOException :: " + e.getMessage());
+	        }
 		
 		
 		

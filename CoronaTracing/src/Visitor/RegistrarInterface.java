@@ -2,9 +2,15 @@ package Visitor;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
+import cateringFacility.CateringInterface;
+
 public interface RegistrarInterface extends Remote {
-	public boolean registerVisitor(VisitorInterface vi) throws RemoteException;
-	public boolean loginV() throws RemoteException;
+	public boolean registerCateringFacility(CateringInterface cf) throws RemoteException; 	//TODO CF-interface opvragen
+	public boolean loginCF() throws RemoteException;
+	
+	
+	public boolean registerUser() throws RemoteException;				//TODO User-interface opvragen
+	public boolean loginUser() throws RemoteException;
 
 	
 

@@ -1,11 +1,9 @@
 package registrar;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
+import java.security.*;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
-
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
 
 public class User {
 
@@ -13,12 +11,16 @@ public class User {
 	private String surname;
 	private String phoneNumber;	//unique identifier
 	
-	private SecretKey secretKey;
+	private KeyPair keyPair;
+	private ArrayList<byte[]> tokens;
 	
-	public User(String name, String surname, String phonNumber) {
+	public User(String name, String surname, String phonNumber) throws NoSuchAlgorithmException {
 		this.name = name;
 		this.surname = surname;
 		this.phoneNumber = phonNumber;
+		KeyPairGenerator keyGen = KeyPairGenerator.getInstance("DSA");
+		keyGen.initialize(2048);
+		keyPair = keyGen.generateKeyPair();
 	}
 
 	public String getName() {
@@ -45,10 +47,21 @@ public class User {
 		this.phoneNumber = phoneNumber;
 	}
 	
-	public void generateTokenSet(int size) {
+	public void generateTokenSet(int size) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+		SecureRandom random = new SecureRandom();
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+		Date date = new Date(System.currentTimeMillis());
+		String dateString = formatter.format(date);
+		Signature dsa = Signature.getInstance("SHA256withDSA");
+		dsa.initSign(keyPair.getPrivate());
+		
 		for(int i = 0; i < size; i++) {
-			SecureRandom random = new SecureRandom();
-			
+			byte[] data = new byte[50]; //TODO welk getal nemen we hier?
+			random.nextBytes(data);
+			dsa.update(data);
+			dsa.update(dateString.getBytes());
+			byte[] token = dsa.sign();
+			tokens.add(token);
 		}
 	}
 	

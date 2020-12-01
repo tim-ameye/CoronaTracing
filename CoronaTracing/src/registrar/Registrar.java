@@ -37,14 +37,18 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 
 
 	@Override
-	public boolean registerUser() throws RemoteException {
-		// TODO Auto-generated method stub
+	public boolean registerVisitor() throws RemoteException {
+		Logger logger = Logger.getLogger("Registrar"); 
+		logger.info("[REGISTRAR] trying to register a visitor");
+		//TODO writing CF to database
+		cf.testConnection("Hello visitor, registrar here");
+		
 		return false;
 	}
 
 
 	@Override
-	public boolean loginUser() throws RemoteException {
+	public boolean loginVisitor() throws RemoteException {
 		// TODO Auto-generated method stub
 		return false;
 	}

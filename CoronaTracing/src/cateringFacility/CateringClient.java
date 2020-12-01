@@ -17,7 +17,7 @@ public class CateringClient {
 	private String phoneNumber;
 
  */
-	
+
 	
 
 	
@@ -26,7 +26,7 @@ public class CateringClient {
 		Scanner sc = new Scanner(System.in);
 		
 		System.out.println("Please enter business number: ");
-		int businessNumber = sc.nextInt();
+		String businessNumber = sc.nextLine();
 		System.out.println("Please enter business name: ");
 		String name = sc.nextLine();
 		System.out.println("Please enter business adress: ");

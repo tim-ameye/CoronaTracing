@@ -16,6 +16,8 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
+import cateringFacility.CateringInterface;
+
 
 public class CateringFacility {
 	private String businessNumber;
@@ -23,6 +25,7 @@ public class CateringFacility {
 	private String adress;
 	private String phoneNumber;
 	private Logger logger;
+	CateringInterface cateringInt;
 	
 	private SecretKey secretKey;
 	
@@ -65,7 +68,18 @@ public class CateringFacility {
 	public void setPhoneNumber(String phoneNumber) {
 		this.phoneNumber = phoneNumber;
 	}
-	
+	public CateringInterface getCateringInt() {
+		return cateringInt;
+	}
+	public void setCateringInt(CateringInterface cateringInt) {
+		this.cateringInt = cateringInt;
+	}
+	public SecretKey getSecretKey() {
+		return secretKey;
+	}
+	public void setSecretKey(SecretKey secretKey) {
+		this.secretKey = secretKey;
+	}
 	public void generateSecretKey(KeyGenerator kg) {
 		secretKey = kg.generateKey();
 	}
@@ -77,13 +91,13 @@ public class CateringFacility {
 			//Create the date for the hash
 			Instant inst = date.toInstant();
 			inst = inst.plus(i, ChronoUnit.DAYS);
-			String dag = formatter.format(inst);
+			String dag = inst.toString();
 			//Create a random seed
 			byte[] seed = new byte[64];
 			random.nextBytes(seed);
 			//create the password for the secretKeyFactory
 			char[] password = (businessNumber+dag+secretKey).toCharArray();
-			PBEKeySpec spec = new PBEKeySpec(password, seed, 10000);
+			PBEKeySpec spec = new PBEKeySpec(password, seed, 10000,128);
 			byte[] key = skf.generateSecret(spec).getEncoded();
 			//Create a pseudonym for that key with a cryptographic hash
 			String message = key.toString() + adress + dag;
@@ -99,5 +113,31 @@ public class CateringFacility {
 		byte[] answer = hashMap.get(instant);
 		if(answer == null) logger.info("New hashes need to be created for catering facility: " + businessNumber);
 		return answer;
+	}
+	
+	public Map<Instant, byte[]> getHashFromToday(){
+		Date date = new Date(System.currentTimeMillis());
+		Instant instant = date.toInstant().truncatedTo(ChronoUnit.DAYS);
+		Map<Instant, byte[]> map = new HashMap<>();
+		for(Map.Entry<Instant,byte[]> entry : hashMap.entrySet()) {
+			if(entry.getKey().isAfter(instant)) map.put(entry.getKey(), entry.getValue());
+		}
+		if(map.isEmpty()) {
+			logger.info("There are no more hashes created for catering facility: " + businessNumber);
+			return null;
+		}
+		return map;
+	}
+	
+	public String toString() {
+		String catering = businessNumber + "_" + name + "_" + adress + "_" + phoneNumber + "_" + secretKey.getEncoded();
+		for(Map.Entry<Instant,byte[]> entry : hashMap.entrySet()) {
+			catering += "_" + entry.getKey().toString() + "_" + entry.getValue().toString();
+		}
+		return catering;
+	}
+	
+	public void addHashes(Instant instant, byte[] hash) {
+		hashMap.put(instant, hash);
 	}
 }

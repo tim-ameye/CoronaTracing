@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.rmi.RemoteException;
 
 import java.rmi.server.UnicastRemoteObject;
+import java.util.logging.Logger;
 
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.oned.EAN13Writer;
@@ -16,13 +17,14 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 public class CateringFacility  extends UnicastRemoteObject implements CateringInterface {
-	private int businessNumber;
+	private String businessNumber;
 	private String name;
 	private String adress;
 	private String phoneNumber;
+	private Logger logger = Logger.getLogger("CateringFacility");
 	
 	
-	public CateringFacility(int businessNumber, String name, String adress, String phoneNumber) throws RemoteException{
+	public CateringFacility(String businessNumber, String name, String adress, String phoneNumber) throws RemoteException{
 		this.businessNumber = businessNumber;
 		this.name = name;
 		this.adress = adress;
@@ -50,10 +52,10 @@ public class CateringFacility  extends UnicastRemoteObject implements CateringIn
     }
 	
 	
-	public int getBusinessNumber() {
+	public String getBusinessNumber() {
 		return businessNumber;
 	}
-	public void setBusinessNumber(int businessNumber) {
+	public void setBusinessNumber(String businessNumber) {
 		this.businessNumber = businessNumber;
 	}
 	public String getName() {
@@ -73,6 +75,12 @@ public class CateringFacility  extends UnicastRemoteObject implements CateringIn
 	}
 	public void setPhoneNumber(String phoneNumber) {
 		this.phoneNumber = phoneNumber;
+	}
+
+	@Override
+	public void alreadyRegistered() throws RemoteException {
+		logger.info("You are already registered to the registrar, please login to continue.");
+		
 	}
 
 	

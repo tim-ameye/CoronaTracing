@@ -14,4 +14,11 @@
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>java</name>
+			<type>2</type>
+			<location>C:/Users/timam/Documents/School/Master/Gedistribueerde Systemen/zxing-zxing-3.4.1/zxing-zxing-3.4.1/core/src/main/java</location>
+		</link>
+	</linkedResources>
 </projectDescription>

@@ -62,6 +62,7 @@ public class CateringClient {
 		
 		
 
+		 sc.close();
 	}
 
 }

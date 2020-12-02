@@ -44,6 +44,12 @@ public class Visitor extends UnicastRemoteObject implements VisitorInterface{
 	public void setPhoneNumber(String phoneNumber) {
 		this.phoneNumber = phoneNumber;
 	}
+
+	@Override
+	public void alreadyRegistered() throws RemoteException {
+		System.out.println("Already registered, login to continue.");
+		
+	}
 	
 	
 	

@@ -1,7 +1,10 @@
 package registrar;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.rmi.registry.*;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.logging.Logger;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -13,7 +16,7 @@ public class Server{
 	public static void main(String[] args) {
 		Logger logger = Logger.getLogger("Registrar"); 
 		
-		String dbFile = "Registrar.txt";
+		String dbFile = "files\\Registrar.txt";
 		Database db = new Database(dbFile);
 		logger.info("A database has been initialised with file name: " + dbFile);
 		try {
@@ -21,6 +24,15 @@ public class Server{
 		} catch (FileNotFoundException e1) {
 			logger.log(Level.SEVERE, "The db-file has not been found! " + e1.getLocalizedMessage());
 			e1.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvalidKeySpecException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		
 		try {

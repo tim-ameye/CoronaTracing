@@ -9,7 +9,7 @@ public interface RegistrarInterface extends Remote {
 	public boolean loginCF() throws RemoteException;
 	
 	
-	public boolean registerVisitor() throws RemoteException;				//TODO User-interface opvragen
+	public boolean registerVisitor(VisitorInterface v) throws RemoteException;				//TODO User-interface opvragen
 	public boolean loginVisitor() throws RemoteException;
 
 	

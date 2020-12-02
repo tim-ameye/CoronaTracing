@@ -1,9 +1,15 @@
 package registrar;
 
 import java.security.*;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import Visitor.VisitorInterface;
 
 public class User {
 
@@ -11,16 +17,16 @@ public class User {
 	private String surname;
 	private String phoneNumber;	//unique identifier
 	
-	private KeyPair keyPair;
-	private ArrayList<byte[]> tokens;
+	private VisitorInterface visitorInt;
 	
-	public User(String name, String surname, String phonNumber) throws NoSuchAlgorithmException {
+	private KeyPair keyPair;
+	private Map<Instant,ArrayList<byte[]>> tokens;
+	
+	public User(String name, String surname, String phonNumber) {
 		this.name = name;
 		this.surname = surname;
 		this.phoneNumber = phonNumber;
-		KeyPairGenerator keyGen = KeyPairGenerator.getInstance("DSA");
-		keyGen.initialize(2048);
-		keyPair = keyGen.generateKeyPair();
+		this.tokens = new HashMap<Instant, ArrayList<byte[]>>();
 	}
 
 	public String getName() {
@@ -47,22 +53,55 @@ public class User {
 		this.phoneNumber = phoneNumber;
 	}
 	
-	public void generateTokenSet(int size) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-		SecureRandom random = new SecureRandom();
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-		Date date = new Date(System.currentTimeMillis());
-		String dateString = formatter.format(date);
-		Signature dsa = Signature.getInstance("SHA256withDSA");
-		dsa.initSign(keyPair.getPrivate());
-		
-		for(int i = 0; i < size; i++) {
-			byte[] data = new byte[50]; //TODO welk getal nemen we hier?
-			random.nextBytes(data);
-			dsa.update(data);
-			dsa.update(dateString.getBytes());
-			byte[] token = dsa.sign();
-			tokens.add(token);
-		}
+	public VisitorInterface getVisitorInt() {
+		return visitorInt;
+	}
+
+	public void setVisitorInt(VisitorInterface visitorInt) {
+		this.visitorInt = visitorInt;
+	}
+
+	public PublicKey getPublicKey() {
+		return keyPair.getPublic();
 	}
 	
+	public void setKeyPair(PublicKey pk, PrivateKey prk) {
+		keyPair = new KeyPair(pk, prk);
+	}
+	
+	public void generateTokenSet(int size, SecureRandom random, Signature rsa) throws SignatureException, InvalidKeyException {
+		Date date = new Date(System.currentTimeMillis());
+		Instant day = date.toInstant().truncatedTo(ChronoUnit.DAYS);
+		if(tokens.containsKey(day)) return;
+		ArrayList<byte[]> generated = new ArrayList<>();
+		for(int i = 0; i < size; i++) {
+			byte[] data = new byte[64]; //TODO welk getal nemen we hier?
+			random.nextBytes(data);
+			rsa.update(data);
+			rsa.update(day.toString().getBytes());
+			byte[] token = rsa.sign();
+			generated.add(token);
+		}
+		tokens.put(day, generated);
+	}
+	
+	public ArrayList<byte[]> getTokensToday(){
+		Date date = new Date(System.currentTimeMillis());
+		Instant day = date.toInstant().truncatedTo(ChronoUnit.DAYS);
+		if(tokens.containsKey(day)) return tokens.get(day);
+		else return null;
+	}
+	
+	public Map<Instant, ArrayList<byte[]>> getTokens(){
+		return tokens;
+	}
+	
+	public void addTokens(Instant instant, ArrayList<byte[]> tokens) {
+		this.tokens.put(instant, tokens);
+	}
+	
+	public String toString() { 
+		String user = phoneNumber + "_" + name + "_" + surname;
+		return user;
+	}
 }

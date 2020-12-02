@@ -3,7 +3,6 @@ package registrar;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -85,9 +84,14 @@ public class CateringFacility {
 	}
 	
 	public void generateHashes(int period, SecretKeyFactory skf, SecureRandom random, MessageDigest md) throws InvalidKeySpecException {
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd");
+		int overlap = 0;
 		Date date = new Date(System.currentTimeMillis());
-		for(int i = 0; i < period; i++) {
+		Instant firstDay = date.toInstant().truncatedTo(ChronoUnit.DAYS);
+		//Check for what dates already a has has been created
+		for(Map.Entry<Instant,byte[]> entry : hashMap.entrySet()) {
+			if(entry.getKey().isAfter(firstDay)) overlap++;
+		}
+		for(int i = overlap; i < period; i++) {
 			//Create the date for the hash
 			Instant inst = date.toInstant();
 			inst = inst.plus(i, ChronoUnit.DAYS);

@@ -14,6 +14,7 @@ import javax.swing.JButton;
 import javax.swing.ImageIcon;
 import java.awt.Color;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.awt.event.ActionEvent;
 
 public class guiVisitor {
@@ -26,6 +27,8 @@ public class guiVisitor {
 	private JPanel panelLogin;
 	private JPanel panelScan;
 	private JPanel panelSucces;
+	private ArrayList<String> sentences = null;
+	int number;
 
 	/**
 	 * Launch the application.
@@ -47,6 +50,17 @@ public class guiVisitor {
 	 * Create the application.
 	 */
 	public guiVisitor() {
+		sentences = new ArrayList<>();
+		sentences.add("Cheers!");
+		sentences.add("Schol!");
+		sentences.add("Prost!");
+		sentences.add("A votre santé!");
+		sentences.add("Na zdrowie!");
+		sentences.add("Salud!");
+		sentences.add("Skål!");
+		sentences.add("Salut!");
+		sentences.add("Gesondheid!");
+		number = (int) (Math.random()*9);
 		initialize();
 	}
 
@@ -129,6 +143,7 @@ public class guiVisitor {
 				//TODO controleren of die wel goed wordt gegenereerd
 				panelSucces.setVisible(true);
 				panelScan.setVisible(false);
+				
 			}
 		});
 		btnScanQR.setFont(new Font("Verdana", Font.PLAIN, 20));
@@ -152,11 +167,11 @@ public class guiVisitor {
 		lblNewLabel_1.setBounds(10, 160, 364, 30);
 		panelSucces.add(lblNewLabel_1);
 		
-		JLabel lblCheers = new JLabel("Cheers!");
+		JLabel lblCheers = new JLabel(sentences.get(number));
 		lblCheers.setHorizontalAlignment(SwingConstants.CENTER);
-		lblCheers.setFont(new Font("Verdana", Font.BOLD, 25));
+		lblCheers.setFont(new Font("Verdana", Font.BOLD, 20));
 		lblCheers.setForeground(new Color(0, 0, 0));
-		lblCheers.setBounds(95, 180, 200, 100);
+		lblCheers.setBounds(0, 180, 384, 100);
 		panelSucces.add(lblCheers);
 		
 		JButton btnScanOtherQrcode = new JButton("Scan other QR-code");

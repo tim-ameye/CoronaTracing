@@ -2,6 +2,7 @@ package Visitor;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Vector;
 
 public class Visitor extends UnicastRemoteObject implements VisitorInterface{
 	private String firstName;
@@ -48,6 +49,24 @@ public class Visitor extends UnicastRemoteObject implements VisitorInterface{
 	@Override
 	public void alreadyRegistered() throws RemoteException {
 		System.out.println("Already registered, login to continue.");
+		
+	}
+
+	@Override
+	public void setGUI(guiVisitor t) throws RemoteException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public guiVisitor getGUI() throws RemoteException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void updateUI(Vector v) throws RemoteException {
+		// TODO Auto-generated method stub
 		
 	}
 	

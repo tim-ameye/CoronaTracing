@@ -14,6 +14,7 @@ import javax.swing.JButton;
 import javax.swing.ImageIcon;
 import java.awt.Color;
 import java.awt.event.ActionListener;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.awt.event.ActionEvent;
 
@@ -29,6 +30,7 @@ public class guiVisitor {
 	private JPanel panelSucces;
 	private ArrayList<String> sentences = null;
 	int number;
+	private Visitor visitor;
 
 	/**
 	 * Launch the application.
@@ -74,17 +76,17 @@ public class guiVisitor {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(new CardLayout(0, 0));
 		
-		JPanel panelLogin = new JPanel();
+		panelLogin = new JPanel();
 		frame.getContentPane().add(panelLogin, "name_861651163587100");
 		panelLogin.setLayout(null);
 		panelLogin.setVisible(true);
 		
-		JPanel panelScan = new JPanel();
+		panelScan = new JPanel();
 		frame.getContentPane().add(panelScan, "name_861655137015600");
 		panelScan.setLayout(null);
 		panelScan.setVisible(false);
 		
-		JPanel panelSucces = new JPanel();
+		panelSucces = new JPanel();
 		frame.getContentPane().add(panelSucces, "name_861659305217200");
 		panelSucces.setLayout(null);
 		panelSucces.setVisible(false);
@@ -92,50 +94,77 @@ public class guiVisitor {
 		JLabel lblNewLabel = new JLabel("First Name:");
 		lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
 		lblNewLabel.setFont(new Font("Verdana", Font.PLAIN, 18));
-		lblNewLabel.setBounds(0, 80, 384, 30);
+		lblNewLabel.setBounds(0, 60, 384, 30);
 		panelLogin.add(lblNewLabel);
 		
 		JLabel lblLastName = new JLabel("Last Name:");
 		lblLastName.setHorizontalAlignment(SwingConstants.CENTER);
 		lblLastName.setFont(new Font("Verdana", Font.PLAIN, 18));
-		lblLastName.setBounds(0, 160, 384, 30);
+		lblLastName.setBounds(0, 140, 384, 30);
 		panelLogin.add(lblLastName);
 		
 		JLabel lblPhonenumber = new JLabel("Phonenumber:");
 		lblPhonenumber.setHorizontalAlignment(SwingConstants.CENTER);
 		lblPhonenumber.setFont(new Font("Verdana", Font.PLAIN, 18));
-		lblPhonenumber.setBounds(0, 240, 384, 30);
+		lblPhonenumber.setBounds(0, 220, 384, 30);
 		panelLogin.add(lblPhonenumber);
 		
 		textField_firstName = new JTextField();
 		textField_firstName.setHorizontalAlignment(SwingConstants.CENTER);
-		textField_firstName.setBounds(125, 120, 150, 30);
+		textField_firstName.setBounds(125, 100, 150, 30);
 		panelLogin.add(textField_firstName);
 		textField_firstName.setColumns(10);
 		
 		textField_lastName = new JTextField();
 		textField_lastName.setHorizontalAlignment(SwingConstants.CENTER);
 		textField_lastName.setColumns(10);
-		textField_lastName.setBounds(125, 200, 150, 30);
+		textField_lastName.setBounds(125, 180, 150, 30);
 		panelLogin.add(textField_lastName);
 		
 		textField_phoneNumber = new JTextField();
 		textField_phoneNumber.setHorizontalAlignment(SwingConstants.CENTER);
 		textField_phoneNumber.setColumns(10);
-		textField_phoneNumber.setBounds(125, 280, 150, 30);
+		textField_phoneNumber.setBounds(125, 260, 150, 30);
 		panelLogin.add(textField_phoneNumber);
 		
 		JButton btnLogin = new JButton("Login");
 		btnLogin.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				//TODO send gegevens naar een databank
-				panelScan.setVisible(true);
-				panelLogin.setVisible(false);
+				try {
+					visitor = new Visitor(textField_firstName.getText(),textField_lastName.getText(), textField_phoneNumber.getText());
+					panelScan.setVisible(true);
+					panelLogin.setVisible(false);
+					//login functie oproepen vd registrar
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+								
 			}
 		});
 		btnLogin.setFont(new Font("Verdana", Font.PLAIN, 20));
-		btnLogin.setBounds(100, 350, 200, 50);
+		btnLogin.setBounds(100, 330, 200, 40);
 		panelLogin.add(btnLogin);
+		
+		JButton btnSignUp = new JButton("Sign up!");
+		btnSignUp.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				//TODO
+				try {
+					visitor = new Visitor(textField_firstName.getText(),textField_lastName.getText(), textField_phoneNumber.getText());
+					panelScan.setVisible(true);
+					panelLogin.setVisible(false);
+					//register functie oproepen vd registrar
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+		btnSignUp.setFont(new Font("Verdana", Font.PLAIN, 20));
+		btnSignUp.setBounds(100, 380, 200, 40);
+		panelLogin.add(btnSignUp);
 		
 		JButton btnScanQR = new JButton("Scan!");
 		btnScanQR.addActionListener(new ActionListener() {

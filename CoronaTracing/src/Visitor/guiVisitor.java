@@ -158,5 +158,16 @@ public class guiVisitor {
 		lblCheers.setForeground(new Color(0, 0, 0));
 		lblCheers.setBounds(95, 180, 200, 100);
 		panelSucces.add(lblCheers);
+		
+		JButton btnScanOtherQrcode = new JButton("Scan other QR-code");
+		btnScanOtherQrcode.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				panelScan.setVisible(true);
+				panelSucces.setVisible(false);
+			}
+		});
+		btnScanOtherQrcode.setFont(new Font("Verdana", Font.PLAIN, 20));
+		btnScanOtherQrcode.setBounds(70, 350, 250, 50);
+		panelSucces.add(btnScanOtherQrcode);
 	}
 }

@@ -1,26 +1,28 @@
 package registrar;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
-import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.SignatureException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
+import java.time.Instant;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.crypto.KeyGenerator;
@@ -38,9 +40,11 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 	private SecretKeyFactory secretKeyFactory;
 	private MessageDigest messageDigest;
 	private Signature signature;
-	private KeyPairGenerator keyPairGen;
-	private KeyPair keyPair;
+	private PrivateKey privateKey;
+	private	Certificate certificate;
 	private KeyFactory keyFactory;
+	private KeyStore keyStore;
+	private final static String path = "files\\keystore.jks";
 	
 	protected Registrar(Database db) throws RemoteException {
 		super();
@@ -48,60 +52,23 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 		this.secureRandom = new SecureRandom();
 		try {
 			this.messageDigest = MessageDigest.getInstance("SHA-256");
-			this.secretKeyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+			this.secretKeyFactory = SecretKeyFactory.getInstance("pbkdf2withhmacsha256");
 			this.keyGenerator = KeyGenerator.getInstance("AES");
 			this.signature = Signature.getInstance("SHA512withRSA");
-			this.keyPairGen = KeyPairGenerator.getInstance("RSA");
 			this.keyFactory = KeyFactory.getInstance("RSA");
 			
-			keyPairGen.initialize(2048);
 			keyGenerator.init(256, secureRandom);
 			
-			// Read public key
-			File filePublicKey = new File("public.key");
-			FileInputStream fis = new FileInputStream("public.key");
-			byte[] encodedPublicKey = new byte[(int) filePublicKey.length()];
-			fis.read(encodedPublicKey);
-			fis.close();
+			this.keyStore = KeyStore.getInstance("JKS");
+			char[] password = "AVB6589klP".toCharArray();
+			FileInputStream fis = new FileInputStream(path);
+			keyStore.load(fis, password);
 			
-			// Read private key
-			File filePrivateKey = new File("private.key");
-			fis = new FileInputStream("private.key");
-			byte[] encodedPrivateKey = new byte[(int) filePrivateKey.length()];
-			fis.read(encodedPrivateKey);
-			fis.close();
+			privateKey = (PrivateKey) keyStore.getKey("corona", password);
 			
-			// See if the keys are generated if not, generate new keys
-			if(encodedPublicKey.length == 0 || encodedPrivateKey.length == 0) {
-				keyPair = keyPairGen.generateKeyPair();
-				// Save public key
-				X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(keyPair.getPublic().getEncoded());
-				FileOutputStream fos = new FileOutputStream("public.key");
-				fos.write(x509EncodedKeySpec.getEncoded());
-				fos.close();
-				
-				// Save private key
-				PKCS8EncodedKeySpec pkcs8EncodedKeySpec = new PKCS8EncodedKeySpec(keyPair.getPrivate().getEncoded());
-				fos = new FileOutputStream("private.key");
-				fos.write(pkcs8EncodedKeySpec.getEncoded());
-				fos.close();
-			} else {
-				try {
-					// Store the key in the keypair
-					X509EncodedKeySpec pubKeySpec = new X509EncodedKeySpec(encodedPublicKey);
-					PublicKey publicKey = keyFactory.generatePublic(pubKeySpec);
-					
-					PKCS8EncodedKeySpec priKeySpec = new PKCS8EncodedKeySpec(encodedPrivateKey);
-					PrivateKey privateKey = keyFactory.generatePrivate(priKeySpec);
-					
-					keyPair = new KeyPair(publicKey, privateKey);
-				} catch (InvalidKeySpecException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				
-			}
-			signature.initSign(keyPair.getPrivate());
+			certificate = CertificateFactory.getInstance("X509").generateCertificate(new FileInputStream("files\\corona_public_cert.cer"));
+			
+			signature.initSign(privateKey);
 			
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
@@ -115,6 +82,15 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 		} catch (InvalidKeyException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (KeyStoreException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (CertificateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (UnrecoverableKeyException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		
 		
@@ -123,7 +99,7 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 
 	public boolean registerCateringFacility(CateringInterface cf) throws RemoteException {
 		Logger logger = Logger.getLogger("Registrar"); 
-		logger.info("[REGISTRAR] trying to register a Catering Facility");
+		logger.info("[REGISTRAR] Trying to register a Catering Facility");
 		
 		String business = cf.getBusinessNumber();
 		String name = cf.getName();
@@ -132,30 +108,49 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 
 		CateringFacility catering = db.findCateringFacility(business, phoneNumber);
 		if(catering != null) {
-			logger.info("The catering facility has already been registered!");
+			logger.info("[REGISTRAR] The catering facility has already been registered!");
 			cf.alreadyRegistered();
 			return false;
 		} else {
 			CateringFacility cateringFacility = new CateringFacility(business, name, address, phoneNumber);
 			cateringFacility.setCateringInt(cf);
 			db.addCateringFacility(cateringFacility);
-			logger.info("The catering facility has been added to the list!");
-			cateringFacility.generateSecretKey(keyGenerator);
+			logger.info("[REGISTRAR] The catering facility has been added to the list!");
 			try {
+				cateringFacility.generateSecretKey(keyGenerator, keyStore);
 				cateringFacility.generateHashes(10, secretKeyFactory, secureRandom, messageDigest);
 			} catch (InvalidKeySpecException e) {
 				e.printStackTrace();
+			} catch (KeyStoreException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			logger.info("The secret key and first period of hashes has been calculated for:" + cateringFacility.getBusinessNumber());
+			logger.info("[REGISTRAR] The secret key and first period of hashes has been calculated for:" + cateringFacility.getBusinessNumber());
 			return true;
 		}
 	}
 
 
 	@Override
-	public boolean loginCF() throws RemoteException {
+	public boolean loginCF(CateringInterface cf) throws RemoteException {
 		// TODO Auto-generated method stub
 		return false;
+	}
+	
+	
+	@Override
+	public Map<Instant, byte[]> getHashes(String busNumber, String phoNumber) throws RemoteException {
+		CateringFacility cf = db.findCateringFacility(busNumber, phoNumber);
+		Map<Instant, byte[]> hashes = cf.getHashFromToday();
+		if(hashes == null);
+			try {
+				cf.generateHashes(10, secretKeyFactory, secureRandom, messageDigest);
+				hashes = cf.getHashFromToday();
+			} catch (InvalidKeySpecException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		return cf.getHashes();
 	}
 
 
@@ -200,6 +195,9 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 
 
 
+
+
+	
 
 	
 	

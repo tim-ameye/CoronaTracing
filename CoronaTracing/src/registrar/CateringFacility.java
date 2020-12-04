@@ -1,7 +1,11 @@
 package registrar;
 
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.UnrecoverableKeyException;
 import java.security.spec.InvalidKeySpecException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -73,14 +77,20 @@ public class CateringFacility {
 	public void setCateringInt(CateringInterface cateringInt) {
 		this.cateringInt = cateringInt;
 	}
-	public SecretKey getSecretKey() {
+	public SecretKey getSecretKey(KeyStore keyStore) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
+		if(secretKey == null) {
+			secretKey = (SecretKey) keyStore.getKey(businessNumber, "AVB6589klP".toCharArray());
+		}
 		return secretKey;
 	}
 	public void setSecretKey(SecretKey secretKey) {
 		this.secretKey = secretKey;
 	}
-	public void generateSecretKey(KeyGenerator kg) {
+	public void generateSecretKey(KeyGenerator kg, KeyStore keyStore) throws KeyStoreException {
 		secretKey = kg.generateKey();
+		KeyStore.ProtectionParameter protectionParam = new KeyStore.PasswordProtection("AVB6589klP".toCharArray());
+		KeyStore.SecretKeyEntry secretKeyEntry = new KeyStore.SecretKeyEntry(secretKey);
+		keyStore.setEntry(businessNumber, secretKeyEntry, protectionParam);
 	}
 	
 	public void generateHashes(int period, SecretKeyFactory skf, SecureRandom random, MessageDigest md) throws InvalidKeySpecException {
@@ -134,11 +144,19 @@ public class CateringFacility {
 	}
 	
 	public String toString() {
-		String catering = businessNumber + "_" + name + "_" + adress + "_" + phoneNumber + "_" + secretKey.getEncoded();
+		String catering = businessNumber + "_" + name + "_" + adress + "_" + phoneNumber;
 		for(Map.Entry<Instant,byte[]> entry : hashMap.entrySet()) {
-			catering += "_" + entry.getKey().toString() + "_" + entry.getValue().toString();
+			catering += "_" + entry.getKey().toString();
 		}
 		return catering;
+	}
+	
+	public String toStringFileName() {
+		return businessNumber + "_" + phoneNumber;
+	}
+	
+	public Map<Instant,byte[]> getHashes() {
+		return hashMap;
 	}
 	
 	public void addHashes(Instant instant, byte[] hash) {

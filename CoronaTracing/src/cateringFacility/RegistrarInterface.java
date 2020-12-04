@@ -1,16 +1,16 @@
 package cateringFacility;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
-import java.util.Vector;
+import java.time.Instant;
+import java.util.Map;
 
 import Visitor.VisitorInterface;
-
-import java.rmi.RemoteException;
 
 public interface RegistrarInterface extends Remote {
 
 	public boolean registerCateringFacility(CateringInterface cf) throws RemoteException; 	//TODO CF-interface opvragen
-	public boolean loginCF() throws RemoteException;
+	public boolean loginCF(CateringInterface cf) throws RemoteException;
+	public Map<Instant, byte[]> getHashes(String busNumber, String phoNumber) throws RemoteException;
 	
 	
 	public boolean registerVisitor(VisitorInterface v) throws RemoteException;				//TODO User-interface opvragen

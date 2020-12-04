@@ -13,7 +13,6 @@ public interface VisitorInterface extends Remote {
 	//public void tell(String s) throws RemoteException;
 	public void setGUI(guiVisitor t) throws RemoteException;
 	public guiVisitor getGUI() throws RemoteException;
-	public void updateUI(Vector v) throws RemoteException;
 	 
 	
 

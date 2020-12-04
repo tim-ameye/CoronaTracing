@@ -8,6 +8,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+
 import Visitor.VisitorInterface;
 
 public class User {
@@ -18,7 +23,7 @@ public class User {
 	
 	private VisitorInterface visitorInt;
 	
-	private KeyPair keyPair;
+	private PublicKey publicKey;
 	private Map<Instant,ArrayList<byte[]>> tokens;
 	
 	public User(String name, String surname, String phonNumber) {
@@ -61,11 +66,11 @@ public class User {
 	}
 
 	public PublicKey getPublicKey() {
-		return keyPair.getPublic();
+		return publicKey;
 	}
 	
-	public void setKeyPair(PublicKey pk, PrivateKey prk) {
-		keyPair = new KeyPair(pk, prk);
+	public void setPublicKey(PublicKey publicKey) {
+		this.publicKey = publicKey;
 	}
 	
 	public void generateTokenSet(int size, SecureRandom random, Signature rsa) throws SignatureException, InvalidKeyException {
@@ -84,10 +89,19 @@ public class User {
 		tokens.put(day, generated);
 	}
 	
-	public ArrayList<byte[]> getTokensToday(){
+	public ArrayList<byte[]> getTokensToday() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException{
 		Date date = new Date(System.currentTimeMillis());
 		Instant day = date.toInstant().truncatedTo(ChronoUnit.DAYS);
-		if(tokens.containsKey(day)) return tokens.get(day);
+		Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+		cipher.init(Cipher.PUBLIC_KEY, publicKey);
+		ArrayList<byte[]> encrypted = new ArrayList<>();
+		if(tokens.containsKey(day)) {
+			for(byte[] token:tokens.get(day)) {
+				byte[] resultaat = cipher.doFinal(token);
+				encrypted.add(resultaat);
+			}			
+			return encrypted;
+		}
 		else return null;
 	}
 	

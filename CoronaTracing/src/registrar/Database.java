@@ -58,8 +58,8 @@ public class Database {
 				Instant date = Instant.parse(info[i]);
 				ArrayList<byte[]> tokens = new ArrayList<>();
 				for (int j = 0; j < 48; j++) {
-					sig = new File("files\\" + user.toString() + "\\" + info[i].substring(0, 10) + "_" + j);
-					sigfig = new FileInputStream("files\\" + user.toString() + "\\" + info[i].substring(0, 10) + "_" + j);
+					sig = new File("files\\users\\" + user.toString() + "\\" + info[i].substring(0, 10) + "_" + j);
+					sigfig = new FileInputStream("files\\users\\" + user.toString() + "\\" + info[i].substring(0, 10) + "_" + j);
 					byte[] signature = new byte[(int) sig.length()];
 					sigfig.read(signature);
 					sigfig.close();

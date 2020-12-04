@@ -7,12 +7,12 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
-import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.SignatureException;
@@ -22,18 +22,25 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.spec.InvalidKeySpecException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKeyFactory;
 
 import Visitor.VisitorInterface;
 import cateringFacility.CateringInterface;
-import cateringFacility.RegistrarInterface;
 
 public class Registrar extends UnicastRemoteObject implements RegistrarInterface{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -4987611293471268813L;
 	private Database db;
 	private SecureRandom secureRandom;
 	private KeyGenerator keyGenerator;
@@ -139,7 +146,7 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 	
 	
 	@Override
-	public Map<Instant, byte[]> getHashes(String busNumber, String phoNumber) throws RemoteException {
+	public Map<Instant, byte[]> getHashesCatering(String busNumber, String phoNumber) throws RemoteException {
 		CateringFacility cf = db.findCateringFacility(busNumber, phoNumber);
 		Map<Instant, byte[]> hashes = cf.getHashFromToday();
 		if(hashes == null);
@@ -191,6 +198,26 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 	public boolean loginVisitor() throws RemoteException {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+
+	@Override
+	public ArrayList<byte[]> getTokensVisitor(String phoNumber, PublicKey publicKey) throws RemoteException {
+		User user = db.findUser(phoNumber);
+		user.setPublicKey(publicKey);
+		ArrayList<byte[]> result = null;
+		try {
+			result = user.getTokensToday();
+			if(result == null) {
+				user.generateTokenSet(10, secureRandom, signature);
+				//result = user.getTokensToday();
+			}
+		} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException
+				| BadPaddingException | SignatureException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return result;
 	}
 
 

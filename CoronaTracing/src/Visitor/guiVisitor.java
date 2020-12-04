@@ -11,15 +11,28 @@ import java.awt.Font;
 import javax.swing.SwingConstants;
 import javax.swing.JTextField;
 import javax.swing.JButton;
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.swing.ImageIcon;
 import java.awt.Color;
 import java.awt.event.ActionListener;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.awt.event.ActionEvent;
 
 public class guiVisitor {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -921166446637910407L;
+	
 	private JFrame frame;
 	private JTextField textField_firstName;
 	private JTextField textField_lastName;
@@ -31,10 +44,11 @@ public class guiVisitor {
 	private ArrayList<String> sentences = null;
 	int number;
 	private Visitor visitor;
+	private VisitorClient visitorClient;
 
 	/**
 	 * Launch the application.
-	 */
+	 
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -51,7 +65,9 @@ public class guiVisitor {
 	/**
 	 * Create the application.
 	 */
-	public guiVisitor() {
+	public guiVisitor(VisitorClient visitorClient) {
+		this.visitorClient = visitorClient;
+		
 		sentences = new ArrayList<>();
 		sentences.add("Cheers!");
 		sentences.add("Schol!");
@@ -71,6 +87,8 @@ public class guiVisitor {
 	 * gui gemaakt met https://www.youtube.com/watch?v=bKPGEqJHWaE
 	 */
 	private void initialize() {
+		
+		
 		frame = new JFrame();
 		frame.setBounds(100, 100, 400, 500);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -139,6 +157,9 @@ public class guiVisitor {
 				} catch (RemoteException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
+				} catch (NoSuchAlgorithmException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 								
 			}
@@ -153,10 +174,16 @@ public class guiVisitor {
 				//TODO
 				try {
 					visitor = new Visitor(textField_firstName.getText(),textField_lastName.getText(), textField_phoneNumber.getText());
-					panelScan.setVisible(true);
-					panelLogin.setVisible(false);
+					if(!visitorClient.register(visitor)) {
+						System.out.println("Please login.");
+					} else {
+						//visitorClient.getTokens();
+						panelScan.setVisible(true);
+						panelLogin.setVisible(false);
+					}
+					
 					//register functie oproepen vd registrar
-				} catch (RemoteException e) {
+				} catch (RemoteException | NoSuchAlgorithmException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
@@ -213,5 +240,9 @@ public class guiVisitor {
 		btnScanOtherQrcode.setFont(new Font("Verdana", Font.PLAIN, 20));
 		btnScanOtherQrcode.setBounds(70, 350, 250, 50);
 		panelSucces.add(btnScanOtherQrcode);
+	}
+	
+	public void setVisible(boolean b) {
+		frame.setVisible(b);
 	}
 }

@@ -9,6 +9,8 @@ import java.util.Scanner;
 
 import com.google.zxing.WriterException;
 
+import registrar.RegistrarInterface;
+
 public class CateringClient {
 /*
  * private int businessNumber;

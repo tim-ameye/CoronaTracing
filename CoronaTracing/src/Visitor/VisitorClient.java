@@ -1,22 +1,37 @@
 package Visitor;
 
+import java.awt.EventQueue;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.Scanner;
+import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.util.ArrayList;
 import java.util.Vector;
 
-import cateringFacility.CateringFacility;
-import cateringFacility.RegistrarInterface;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+
+import registrar.RegistrarInterface;
 
 public class VisitorClient extends UnicastRemoteObject implements VisitorInterface{
 	private Visitor visitor;
 	private guiVisitor ui;
+	RegistrarInterface server = null;
+	Registry myRegistry = null;
+	private ArrayList<byte[]> tokens;
+
 	
-	public VisitorClient(Visitor visitor) throws RemoteException {
-		this.visitor = visitor;
+	public VisitorClient() throws RemoteException, NotBoundException {
+		myRegistry = LocateRegistry.getRegistry("localhost", 55545);
+		server = (RegistrarInterface) myRegistry.lookup("Registrar"); 
+		this.visitor = null;
 	}
 	
 	public Visitor getVisitor() throws RemoteException {
@@ -55,10 +70,34 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 		//TODO
 	}
 	
-	/*public static void main(String[] args) {
-		RegistrarInterface server;
-		Scanner sc = new Scanner(System.in);
-		
+	public boolean register(Visitor v) throws RemoteException {
+		this.visitor = v;
+		return server.registerVisitor(v);
+	}
+	
+	public void getTokens() throws RemoteException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException {
+		ArrayList<byte[]> ans = server.getTokensVisitor(visitor.getPhoneNumber(), visitor.getPublicKey());
+		Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+		cipher.init(Cipher.PRIVATE_KEY, visitor.getPrivateKey());
+		for(byte[] b:ans) {
+			byte[] decrypt = cipher.doFinal(b);
+			tokens.add(decrypt);
+		}
+	
+	}
+	
+	public static void main(String[] args) throws RemoteException, NotBoundException {
+		VisitorClient visitorClient = new VisitorClient();
+		EventQueue.invokeLater(() -> {
+				try {
+					guiVisitor window = new guiVisitor(visitorClient);
+					window.setVisible(true);
+					
+				} catch (Exception e) {
+					e.printStackTrace();
+				}	
+		});
+		/*
 		System.out.println("Please enter first name : ");
 		String firstName = sc.nextLine();
 		System.out.println("Please enter last name : ");
@@ -80,7 +119,7 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 			e.printStackTrace();
 		} catch (NotBoundException e) {
 			e.printStackTrace();
-		}
-	}*/
+		}*/
+	}
 
 }

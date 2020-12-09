@@ -216,7 +216,7 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 			byte[] encryptedSessionKey = encryptSession.doFinal(sessionKey.getEncoded());
 			result.add(encryptedSessionKey);
 			if(user.getTokensToday() == null) {
-				user.generateTokenSet(10, secureRandom, signature);
+				user.generateTokenSet(48, secureRandom, signature);
 			}
 			for(byte[] b:user.getTokensToday()) {
 				byte[] cipherText = encryptText.doFinal(b);

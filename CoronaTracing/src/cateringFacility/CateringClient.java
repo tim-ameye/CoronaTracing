@@ -45,6 +45,7 @@ public class CateringClient {
 			server = (RegistrarInterface) myRegistry.lookup("Registrar"); 
 			
 			server.registerCateringFacility(cateringFacility);
+			server.getHashesCatering(businessNumber, phoneNumber);
 			
 			
 		} catch (RemoteException e) {

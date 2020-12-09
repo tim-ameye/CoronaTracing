@@ -150,7 +150,7 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 	public Map<Instant, byte[]> getHashesCatering(String busNumber, String phoNumber) throws RemoteException {
 		CateringFacility cf = db.findCateringFacility(busNumber, phoNumber);
 		Map<Instant, byte[]> hashes = cf.getHashFromToday();
-		if(hashes == null);
+		if(hashes == null) {
 			try {
 				cf.generateHashes(10, secretKeyFactory, secureRandom, messageDigest);
 				hashes = cf.getHashFromToday();
@@ -158,6 +158,7 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		}
 		return cf.getHashes();
 	}
 

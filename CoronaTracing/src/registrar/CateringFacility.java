@@ -134,7 +134,7 @@ public class CateringFacility {
 		Instant instant = date.toInstant().truncatedTo(ChronoUnit.DAYS);
 		Map<Instant, byte[]> map = new HashMap<>();
 		for(Map.Entry<Instant,byte[]> entry : hashMap.entrySet()) {
-			if(entry.getKey().isAfter(instant)) map.put(entry.getKey(), entry.getValue());
+			if(entry.getKey().isAfter(instant) || entry.getKey().equals(instant)) map.put(entry.getKey(), entry.getValue());
 		}
 		if(map.isEmpty()) {
 			logger.info("There are no more hashes created for catering facility: " + businessNumber);

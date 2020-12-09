@@ -103,7 +103,7 @@ public class CateringFacility {
 		}
 		for(int i = overlap; i < period; i++) {
 			//Create the date for the hash
-			Instant inst = date.toInstant();
+			Instant inst = date.toInstant().truncatedTo(ChronoUnit.DAYS);
 			inst = inst.plus(i, ChronoUnit.DAYS);
 			String dag = inst.toString();
 			//Create a random seed

@@ -27,7 +27,7 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 	private guiVisitor ui;
 	RegistrarInterface server = null;
 	Registry myRegistry = null;
-	private ArrayList<byte[]> tokens;
+	private ArrayList<byte[]> tokens = new ArrayList<>();
 
 	
 	public VisitorClient() throws RemoteException, NotBoundException {

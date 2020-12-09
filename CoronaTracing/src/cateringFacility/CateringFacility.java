@@ -6,6 +6,11 @@ import java.nio.file.Path;
 import java.rmi.RemoteException;
 
 import java.rmi.server.UnicastRemoteObject;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import com.google.zxing.common.BitMatrix;
@@ -23,19 +28,40 @@ public class CateringFacility  extends UnicastRemoteObject implements CateringIn
 	private String phoneNumber;
 	private Logger logger = Logger.getLogger("CateringFacility");
 	
+	Map<Instant, byte[]> hashes;
+	
 	
 	public CateringFacility(String businessNumber, String name, String adress, String phoneNumber) throws RemoteException{
 		this.businessNumber = businessNumber;
 		this.name = name;
 		this.adress = adress;
 		this.phoneNumber = phoneNumber;
-	}
+		hashes = new HashMap<>();
+		}
 	
 	@Override
 	public void testConnection(String s) throws RemoteException {
-		System.out.println("test: "+s);
+		System.out.println("[CONNECTION_TEST]: "+s);
 		
 	}
+	
+	
+	public byte[] getCurrentToken() {
+		Date date = new Date(System.currentTimeMillis());
+		Instant currentDay = date.toInstant().truncatedTo(ChronoUnit.DAYS);
+		
+		if (hashes != null) {
+			if (hashes.containsKey(currentDay)) {
+				return hashes.get(currentDay);
+			}
+			System.out.println("[CATERINGFACILITY] could not find the current day "+ currentDay + " in our hashes map. " );
+		}else {
+			System.out.println("[CATERINGFACILITY] the hashes variable is null, fatal error.");
+		}
+		return null;
+	}
+	
+	
 	public BufferedImage createQR(String barcodeText)  throws Exception{
 		 	EAN13Writer barcodeWriter = new EAN13Writer();
 		    BitMatrix bitMatrix = barcodeWriter.encode(barcodeText, BarcodeFormat.EAN_13, 300, 150);
@@ -77,11 +103,21 @@ public class CateringFacility  extends UnicastRemoteObject implements CateringIn
 		this.phoneNumber = phoneNumber;
 	}
 
+	public Map<Instant, byte[]> getHashes() {
+		return hashes;
+	}
+
+	public void setHashes(Map<Instant, byte[]> hashes) {
+		this.hashes = hashes;
+	}
+
 	@Override
 	public void alreadyRegistered() throws RemoteException {
 		logger.info("You are already registered to the registrar, please login to continue.");
 		
 	}
+
+
 
 	
 	

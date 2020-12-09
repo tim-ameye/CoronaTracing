@@ -10,6 +10,8 @@ import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
+import java.sql.Date;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Vector;
 
@@ -20,19 +22,23 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
+import mixingProxy.Capsule;
+import mixingProxy.MixingProxyInterface;
 import registrar.RegistrarInterface;
 
 public class VisitorClient extends UnicastRemoteObject implements VisitorInterface{
 	private Visitor visitor;
 	private guiVisitor ui;
-	RegistrarInterface server = null;
+	RegistrarInterface registerServer = null;
+	MixingProxyInterface mixingProxyServer = null;
 	Registry myRegistry = null;
 	private ArrayList<byte[]> tokens = new ArrayList<>();
 
 	
 	public VisitorClient() throws RemoteException, NotBoundException {
 		myRegistry = LocateRegistry.getRegistry("localhost", 55545);
-		server = (RegistrarInterface) myRegistry.lookup("Registrar"); 
+		registerServer = (RegistrarInterface) myRegistry.lookup("Registrar"); 
+		mixingProxyServer = (MixingProxyInterface) myRegistry.lookup("MixingProxy");
 		this.visitor = null;
 	}
 	
@@ -78,11 +84,11 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 	
 	public boolean register(Visitor v) throws RemoteException {
 		this.visitor = v;
-		return server.registerVisitor(v);
+		return registerServer.registerVisitor(v);
 	}
 	
 	public void getTokens() throws RemoteException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException {
-		ArrayList<byte[]> ans = server.getTokensVisitor(visitor.getPhoneNumber(), visitor.getPublicKey());
+		ArrayList<byte[]> ans = registerServer.getTokensVisitor(visitor.getPhoneNumber(), visitor.getPublicKey());
 		Cipher cipherKey = Cipher.getInstance("RSA");
 		cipherKey.init(Cipher.DECRYPT_MODE, visitor.getPrivateKey());
 		SecretKey sessionKey = new SecretKeySpec(cipherKey.doFinal(ans.get(0)), "AES");
@@ -129,6 +135,14 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 		} catch (NotBoundException e) {
 			e.printStackTrace();
 		}*/
+	}
+
+	public void makeCapsule(String text) {
+		String[] arguments = text.split("_");
+		Date date = new Date(System.currentTimeMillis());
+		Instant day = date.toInstant(); //TODO afronden op half uur
+		Capsule capsule = new Capsule(day, tokens.remove(0), arguments[2]);
+		
 	}
 
 }

@@ -213,6 +213,7 @@ public class guiVisitor {
 				//TODO controleren of die wel goed wordt gegenereerd
 				panelSucces.setVisible(true);
 				panelScan.setVisible(false);
+				visitorClient.makeCapsule(textField_QRinputstring.getText());
 				
 			}
 		});

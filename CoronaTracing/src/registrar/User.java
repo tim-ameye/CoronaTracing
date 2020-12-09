@@ -92,13 +92,10 @@ public class User {
 	public ArrayList<byte[]> getTokensToday() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException{
 		Date date = new Date(System.currentTimeMillis());
 		Instant day = date.toInstant().truncatedTo(ChronoUnit.DAYS);
-		Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-		cipher.init(Cipher.PUBLIC_KEY, publicKey);
 		ArrayList<byte[]> encrypted = new ArrayList<>();
 		if(tokens.containsKey(day)) {
 			for(byte[] token:tokens.get(day)) {
-				byte[] resultaat = cipher.doFinal(token);
-				encrypted.add(resultaat);
+				encrypted.add(token);
 			}			
 			return encrypted;
 		}

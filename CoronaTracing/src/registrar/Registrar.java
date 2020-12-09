@@ -27,9 +27,11 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 
 import Visitor.VisitorInterface;
@@ -67,14 +69,13 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 			keyGenerator.init(256, secureRandom);
 			
 			this.keyStore = KeyStore.getInstance("JKS");
-			char[] password = "AVB6589klP".toCharArray();
+			char[] password = "AVB6589klp".toCharArray();
 			FileInputStream fis = new FileInputStream(path);
 			keyStore.load(fis, password);
 			
-			privateKey = (PrivateKey) keyStore.getKey("corona", password);
+			privateKey = (PrivateKey) keyStore.getKey("registrar", password);
 			
-			certificate = CertificateFactory.getInstance("X509").generateCertificate(new FileInputStream("files\\corona_public_cert.cer"));
-			
+			certificate = keyStore.getCertificate("registrar");
 			signature.initSign(privateKey);
 			
 		} catch (NoSuchAlgorithmException e) {
@@ -98,7 +99,7 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 		} catch (UnrecoverableKeyException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		} 
 		
 		
 	}
@@ -205,12 +206,21 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 	public ArrayList<byte[]> getTokensVisitor(String phoNumber, PublicKey publicKey) throws RemoteException {
 		User user = db.findUser(phoNumber);
 		user.setPublicKey(publicKey);
-		ArrayList<byte[]> result = null;
+		ArrayList<byte[]> result = new ArrayList<>();
+		SecretKey sessionKey = keyGenerator.generateKey();
 		try {
-			result = user.getTokensToday();
-			if(result == null) {
+			Cipher encryptText = Cipher.getInstance("AES");
+			encryptText.init(Cipher.ENCRYPT_MODE, sessionKey);
+			Cipher encryptSession = Cipher.getInstance("RSA");
+			encryptSession.init(Cipher.ENCRYPT_MODE, publicKey);
+			byte[] encryptedSessionKey = encryptSession.doFinal(sessionKey.getEncoded());
+			result.add(encryptedSessionKey);
+			if(user.getTokensToday() == null) {
 				user.generateTokenSet(10, secureRandom, signature);
-				//result = user.getTokensToday();
+			}
+			for(byte[] b:user.getTokensToday()) {
+				byte[] cipherText = encryptText.doFinal(b);
+				result.add(cipherText);
 			}
 		} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException
 				| BadPaddingException | SignatureException e) {

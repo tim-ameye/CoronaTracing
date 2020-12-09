@@ -17,6 +17,8 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 import registrar.RegistrarInterface;
 
@@ -36,6 +38,10 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 	
 	public Visitor getVisitor() throws RemoteException {
 		return this.visitor;
+	}
+	
+	public void setVisitor(Visitor visitor) {
+		this.visitor = visitor;
 	}
 	
 	public void testConnection(String s) throws RemoteException{
@@ -77,10 +83,13 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 	
 	public void getTokens() throws RemoteException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException {
 		ArrayList<byte[]> ans = server.getTokensVisitor(visitor.getPhoneNumber(), visitor.getPublicKey());
-		Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-		cipher.init(Cipher.PRIVATE_KEY, visitor.getPrivateKey());
-		for(byte[] b:ans) {
-			byte[] decrypt = cipher.doFinal(b);
+		Cipher cipherKey = Cipher.getInstance("RSA");
+		cipherKey.init(Cipher.DECRYPT_MODE, visitor.getPrivateKey());
+		SecretKey sessionKey = new SecretKeySpec(cipherKey.doFinal(ans.get(0)), "AES");
+		Cipher cipherToken = Cipher.getInstance("AES");
+		cipherToken.init(Cipher.DECRYPT_MODE, sessionKey);
+		for(int i = 1; i < ans.size(); i++) {
+			byte[] decrypt = cipherToken.doFinal(ans.get(i));
 			tokens.add(decrypt);
 		}
 	

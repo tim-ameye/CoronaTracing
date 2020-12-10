@@ -11,7 +11,8 @@ import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.util.Date;
-import java.time.Instant;
+import java.time.*;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Vector;
 
@@ -38,6 +39,7 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 	Registry myRegistry = null;
 	Registry mixingProxyRegistry = null;
 	private ArrayList<byte[]> tokens = new ArrayList<>();
+	private ArrayList<Visit> visits = new ArrayList<>();
 
 	
 	public VisitorClient() throws RemoteException, NotBoundException {
@@ -145,7 +147,7 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 	public Capsule makeCapsule(String text) {
 		String[] arguments = text.split("_");
 		Date date = new Date(System.currentTimeMillis());
-		Instant day = date.toInstant(); //TODO afronden op half uur
+		Instant day = roundTime(date);
 		Capsule capsule = new Capsule(day, tokens.remove(0), arguments[2]);
 		return capsule;
 	}
@@ -158,6 +160,13 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 			e.printStackTrace(); 
 		}
 		
+	}
+	
+	public Instant roundTime(Date date) {
+		Instant minutes = date.toInstant().truncatedTo(ChronoUnit.MINUTES);
+		Instant hours = date.toInstant().truncatedTo(ChronoUnit.HOURS);
+		if (minutes.toEpochMilli()-hours.toEpochMilli() > 1.8e+6) hours.plus(30,ChronoUnit.MINUTES);
+		return hours;
 	}
 
 }

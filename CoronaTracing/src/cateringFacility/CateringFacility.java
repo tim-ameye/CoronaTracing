@@ -28,8 +28,8 @@ public class CateringFacility  extends UnicastRemoteObject implements CateringIn
 	private String phoneNumber;
 	private Logger logger = Logger.getLogger("CateringFacility");
 	
-	Map<Instant, byte[]> hashes;
-	
+	private Map<Instant, byte[]> hashes;
+	private byte[] currentToken;
 	
 	public CateringFacility(String businessNumber, String name, String adress, String phoneNumber) throws RemoteException{
 		this.businessNumber = businessNumber;
@@ -37,6 +37,7 @@ public class CateringFacility  extends UnicastRemoteObject implements CateringIn
 		this.adress = adress;
 		this.phoneNumber = phoneNumber;
 		hashes = new HashMap<>();
+		currentToken = null;
 		}
 	
 	@Override
@@ -52,7 +53,8 @@ public class CateringFacility  extends UnicastRemoteObject implements CateringIn
 		
 		if (hashes != null) {
 			if (hashes.containsKey(currentDay)) {
-				return hashes.get(currentDay);
+				currentToken = hashes.get(currentDay);
+				return currentToken;
 			}
 			System.out.println("[CATERINGFACILITY] could not find the current day "+ currentDay + " in our hashes map. " );
 		}else {

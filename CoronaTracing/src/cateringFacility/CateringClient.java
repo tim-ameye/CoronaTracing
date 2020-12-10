@@ -6,6 +6,8 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.Date;
 import java.util.Map;
 import java.util.Scanner;
@@ -63,19 +65,25 @@ public class CateringClient {
 		} catch (NotBoundException e) {
 			e.printStackTrace();
 		}
+		Date date = new Date(System.currentTimeMillis());
+		Instant currentDay = date.toInstant().truncatedTo(ChronoUnit.DAYS);
 		
 		byte[] currentToken = cateringFacility.getCurrentToken();
-		String tokenAsString = currentToken.toString();
+		String tokenAsString = Base64.getEncoder().encodeToString(currentToken);
 		
-		
+		// writing the tokes as a string to a qr code located at QRCodes/Brn+Buisnissnummer+Date.png
 		try {
-			cateringFacility.generateQRCodeImage(tokenAsString, 350, 350, "./QR.png");
+			
+			System.out.println("[SYSTEM] Trying to make the QR code with token " + tokenAsString);
+			cateringFacility.generateQRCodeImage(tokenAsString, 200 , 200, "./QRCodes/"+businessNumber+"/Bnr"+businessNumber +"D"+ currentDay.toString().substring(0, 10) +".png");
+			System.out.println("[SYSTEM] qr code should be found at: ./QRCodes/Bnr"+businessNumber + "D" + currentDay.toString().substring(0, 10) +".png");
+			
 		} catch (WriterException e) {
-			System.out.println("Could not generate QR Code, WriterException :: " + e.getMessage());
+			System.out.println("[SYSTEM] Could not generate QR Code, WriterException :: " + e.getMessage());
 		} catch (IOException e) {
-			System.out.println("Could not generate QR Code, IOException :: " + e.getMessage());
+			System.out.println("[SYSTEM] Could not generate QR Code, IOException :: " + e.getMessage());
 		}
-
+		
 
 
 

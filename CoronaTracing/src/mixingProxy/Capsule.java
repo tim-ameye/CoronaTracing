@@ -10,13 +10,8 @@ public class Capsule implements Serializable{
 	 * 
 	 */
 	private static final long serialVersionUID = 6141754611786842771L;
-	private String currentTimeInterval;
-	
-	public Capsule() {
-		currentTimeInterval = "dsqf";
-	}
-	
-	/*private byte[] usertoken;
+	private Instant currentTimeInterval;
+	private byte[] usertoken;
 	private String qrToken; //deze moet dan na toekomen geUnhashed worden
 	
 	public Capsule() {
@@ -26,13 +21,21 @@ public class Capsule implements Serializable{
 	}
 
 	public Capsule(Instant day, byte[] token, String string) {
-		this.currentTimeInterval = day.toString();
+		this.currentTimeInterval = day;
 		this.usertoken = token;
 		this.qrToken = string;
 		
 	}
 
 	
+	public Instant getCurrentTimeInterval() {
+		return currentTimeInterval;
+	}
+
+	public void setCurrentTimeInterval(Instant currentTimeInterval) {
+		this.currentTimeInterval = currentTimeInterval;
+	}
+
 	public byte[] getUsertoken() {
 		return usertoken;
 	}
@@ -45,5 +48,5 @@ public class Capsule implements Serializable{
 	public void setQrToken(String qrToken) {
 		this.qrToken = qrToken;
 	}
-	*/
+	
 }

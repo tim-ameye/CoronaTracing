@@ -146,8 +146,8 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 		String[] arguments = text.split("_");
 		Date date = new Date(System.currentTimeMillis());
 		Instant day = date.toInstant(); //TODO afronden op half uur
-		//Capsule capsule = new Capsule(day, tokens.remove(0), arguments[2]);
-		return new Capsule();
+		Capsule capsule = new Capsule(day, tokens.remove(0), arguments[2]);
+		return capsule;
 	}
 
 	public void sendCapsule(Capsule capsule) {

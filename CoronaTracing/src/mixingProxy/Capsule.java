@@ -1,11 +1,22 @@
 package mixingProxy;
 
 
+import java.io.Serializable;
 import java.time.Instant;
 
-public class Capsule{
-	private Instant currentTimeInterval;
-	private byte[] usertoken;
+public class Capsule implements Serializable{
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 6141754611786842771L;
+	private String currentTimeInterval;
+	
+	public Capsule() {
+		currentTimeInterval = "dsqf";
+	}
+	
+	/*private byte[] usertoken;
 	private String qrToken; //deze moet dan na toekomen geUnhashed worden
 	
 	public Capsule() {
@@ -15,18 +26,13 @@ public class Capsule{
 	}
 
 	public Capsule(Instant day, byte[] token, String string) {
-		this.currentTimeInterval = day;
+		this.currentTimeInterval = day.toString();
 		this.usertoken = token;
 		this.qrToken = string;
 		
 	}
 
-	public Instant getCurrentTimeInterval() {
-		return currentTimeInterval;
-	}
-	public void setCurrentTimeInterval(Instant currentTimeInterval) {
-		this.currentTimeInterval = currentTimeInterval;
-	}
+	
 	public byte[] getUsertoken() {
 		return usertoken;
 	}
@@ -39,6 +45,5 @@ public class Capsule{
 	public void setQrToken(String qrToken) {
 		this.qrToken = qrToken;
 	}
-	
-	
+	*/
 }

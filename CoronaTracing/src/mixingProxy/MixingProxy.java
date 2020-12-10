@@ -12,6 +12,10 @@ import java.security.cert.CertificateFactory;
 import java.util.*;
 
 public class MixingProxy extends UnicastRemoteObject implements MixingProxyInterface {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8870169243620905534L;
 	private Queue<Capsule> queue;
 	private PrivateKey privateKey;
 	private Certificate certificate;
@@ -53,26 +57,22 @@ public class MixingProxy extends UnicastRemoteObject implements MixingProxyInter
 	@Override
 	public boolean registerVisit(Capsule capsule) throws RemoteException {
 		//1: validate of the user token
-		byte[] userToken = capsule.getUsertoken();
+		//byte[] userToken = capsule.getUsertoken();
 		char[] password = "AVB6589klp".toCharArray();
 		try {
 			PublicKey publicKey = (PublicKey) keyStore.getKey("mixingproxy", password);
 			Signature sig = Signature.getInstance("SHA512withRSA ");
 			sig.initVerify(publicKey);
-			sig.update(userToken);
-			boolean b = sig.verify(userToken);
-			System.out.println(b);
+			//sig.update(userToken);
+			//boolean b = sig.verify(userToken);
+			//System.out.println(b);
 		} catch (UnrecoverableKeyException | KeyStoreException | NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (InvalidKeyException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (SignatureException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	
+		} 
 		
 
 		

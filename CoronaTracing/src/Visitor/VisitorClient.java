@@ -27,6 +27,10 @@ import mixingProxy.MixingProxyInterface;
 import registrar.RegistrarInterface;
 
 public class VisitorClient extends UnicastRemoteObject implements VisitorInterface{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2631581918599321298L;
 	private Visitor visitor;
 	private guiVisitor ui;
 	RegistrarInterface registerServer = null;
@@ -142,8 +146,8 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 		String[] arguments = text.split("_");
 		Date date = new Date(System.currentTimeMillis());
 		Instant day = date.toInstant(); //TODO afronden op half uur
-		Capsule capsule = new Capsule(day, tokens.remove(0), arguments[2]);
-		return capsule;
+		//Capsule capsule = new Capsule(day, tokens.remove(0), arguments[2]);
+		return new Capsule();
 	}
 
 	public void sendCapsule(Capsule capsule) {

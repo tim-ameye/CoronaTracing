@@ -19,7 +19,6 @@ import java.security.SignatureException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
 import java.security.spec.InvalidKeySpecException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -251,8 +250,26 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 		return result;
 	}
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
-//			RMI-Methods
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
+	@Override
+	public void notifyVisitors(ArrayList<byte[]> infectedTokens) throws RemoteException {
+		ArrayList<User> infectedUsers = new ArrayList<>();
+		for(byte[] infected: infectedTokens) {
+			User infectedUser = db.findUserWithToken(infected);
+			if(infectedUser == null) System.out.println("No user with one of the infected tokens has been found.");
+			else if(!infectedUsers.contains(infectedUser)) {
+				infectedUsers.add(infectedUser);
+			}
+		}
+		for(User user: infectedUsers) {
+			System.out.println(user.getName() + " needs to be contacted his/her phonenumber is " + user.getPhoneNumber() + ".");
+		}
+		
+		
+	}
 
+	@Override
+	public void notifyFacility(ArrayList<byte[]> infectedHahses) throws RemoteException {
+		// TODO Auto-generated method stub
+		
+	}
 }

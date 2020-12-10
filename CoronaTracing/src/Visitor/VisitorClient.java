@@ -11,7 +11,8 @@ import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.util.Date;
-import java.time.Instant;
+import java.time.*;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Vector;
 
@@ -38,6 +39,8 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 	Registry myRegistry = null;
 	Registry mixingProxyRegistry = null;
 	private ArrayList<byte[]> tokens = new ArrayList<>();
+	private ArrayList<Visit> visits = new ArrayList<>();
+	private String qrCode;
 
 	
 	public VisitorClient() throws RemoteException, NotBoundException {
@@ -93,6 +96,14 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 		return registerServer.registerVisitor(v);
 	}
 	
+	public ArrayList<Visit> getVisits() {
+		return visits;
+	}
+
+	public void setVisits(ArrayList<Visit> visits) {
+		this.visits = visits;
+	}
+
 	public void getTokens() throws RemoteException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException {
 		ArrayList<byte[]> ans = registerServer.getTokensVisitor(visitor.getPhoneNumber(), visitor.getPublicKey());
 		Cipher cipherKey = Cipher.getInstance("RSA");
@@ -143,21 +154,37 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 	}
 
 	public Capsule makeCapsule(String text) {
+		this.qrCode = text;
 		String[] arguments = text.split("_");
 		Date date = new Date(System.currentTimeMillis());
-		Instant day = date.toInstant(); //TODO afronden op half uur
-		Capsule capsule = new Capsule(day, tokens.remove(0), arguments[2]);
+		Instant day = roundTime(date);
+		Capsule capsule = new Capsule(day, tokens.get(0), arguments[2]);
 		return capsule;
 	}
 
-	public void sendCapsule(Capsule capsule) {
+	public boolean sendCapsule(Capsule capsule) {
 		try {
-			mixingProxyServer.registerVisit(capsule);
+			boolean b = mixingProxyServer.registerVisit(capsule);
+			return b;
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace(); 
 		}
+		return false;
 		
+	}
+	
+	public Instant roundTime(Date date) {
+		Instant minutes = date.toInstant().truncatedTo(ChronoUnit.MINUTES);
+		Instant hours = date.toInstant().truncatedTo(ChronoUnit.HOURS);
+		if (minutes.toEpochMilli()-hours.toEpochMilli() > 1.8e+6) hours.plus(30,ChronoUnit.MINUTES);
+		return hours;
+	}
+	
+	public void addVisit() {//TODO controleren
+		String[] arguments = qrCode.split("_");
+		Visit visit = new Visit(Integer.parseInt(arguments[0]), tokens.remove(0), arguments[3]); //randomnummmber, unique identifier, hash catering
+		visits.add(visit);
 	}
 
 }

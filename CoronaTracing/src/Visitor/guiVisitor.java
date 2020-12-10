@@ -17,6 +17,7 @@ import javax.swing.JButton;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import java.awt.Color;
 import java.awt.event.ActionListener;
@@ -28,6 +29,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.awt.event.ActionEvent;
+import javax.swing.JList;
 
 public class guiVisitor {
 
@@ -109,6 +111,24 @@ public class guiVisitor {
 		
 		panelSucces = new JPanel();
 		frame.getContentPane().add(panelSucces, "name_861659305217200");
+		panelSucces.setLayout(null);
+		panelSucces.setVisible(false);
+		
+		JPanel panelVisitorLogs = new JPanel();
+		frame.getContentPane().add(panelVisitorLogs, "name_48490272459100");
+		panelVisitorLogs.setLayout(null);
+		
+		//TODO
+		JList<Visit> list = new JList<>();
+		list.setBounds(10, 11, 364, 439);
+		panelVisitorLogs.add(list);
+		DefaultListModel<Visit> dlm = new DefaultListModel<>();
+		for(Visit visit : visitorClient.getVisits()) {
+			dlm.addElement(visit);
+		}
+		list.setModel(dlm);
+		
+		
 		panelSucces.setLayout(null);
 		panelSucces.setVisible(false);
 		
@@ -217,24 +237,38 @@ public class guiVisitor {
 				panelSucces.setVisible(true);
 				panelScan.setVisible(false);
 				Capsule capsule = visitorClient.makeCapsule(textField_QRinputstring.getText());
-				visitorClient.sendCapsule(capsule);
+				boolean b = visitorClient.sendCapsule(capsule);
+				if(b) {
+					visitorClient.addVisit();
+				}
 			}
 		});
 		btnScanQR.setFont(new Font("Verdana", Font.PLAIN, 20));
-		btnScanQR.setBounds(100, 350, 200, 50);
+		btnScanQR.setBounds(100, 310, 200, 50);
 		panelScan.add(btnScanQR);
 		
 		JLabel lblPleaseScanThe = new JLabel("Please scan the QR-code");
 		lblPleaseScanThe.setHorizontalAlignment(SwingConstants.CENTER);
 		lblPleaseScanThe.setFont(new Font("Verdana", Font.PLAIN, 18));
-		lblPleaseScanThe.setBounds(0, 80, 384, 30);
+		lblPleaseScanThe.setBounds(0, 50, 384, 30);
 		panelScan.add(lblPleaseScanThe);
 		
 		textField_QRinputstring = new JTextField();
 		textField_QRinputstring.setHorizontalAlignment(SwingConstants.CENTER);
-		textField_QRinputstring.setBounds(100, 120, 200, 200);
+		textField_QRinputstring.setBounds(100, 90, 200, 200);
 		panelScan.add(textField_QRinputstring);
 		textField_QRinputstring.setColumns(10);
+		
+		JButton btnViewLogs = new JButton("View logs");
+		btnViewLogs.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				panelVisitorLogs.setVisible(true);
+				panelScan.setVisible(false);
+			}
+		});
+		btnViewLogs.setFont(new Font("Verdana", Font.PLAIN, 20));
+		btnViewLogs.setBounds(100, 380, 200, 50);
+		panelScan.add(btnViewLogs);
 		
 		JLabel lblNewLabel_1 = new JLabel("You have succesfully scanned the QR-code! ");
 		lblNewLabel_1.setFont(new Font("Verdana", Font.PLAIN, 16));
@@ -258,6 +292,7 @@ public class guiVisitor {
 		btnScanOtherQrcode.setFont(new Font("Verdana", Font.PLAIN, 20));
 		btnScanOtherQrcode.setBounds(70, 350, 250, 50);
 		panelSucces.add(btnScanOtherQrcode);
+		
 	}
 	
 	public void setVisible(boolean b) {

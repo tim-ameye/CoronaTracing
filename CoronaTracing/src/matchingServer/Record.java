@@ -5,22 +5,22 @@ import java.util.ArrayList;
 
 public class Record {
 
-	private byte[] hash;
+	private String cfHash; 				// hash from the cateringfacility
 	private Instant time;
-	private ArrayList<byte[]> tokens;
+	private ArrayList<String> tokens;	// the users at that time in the cf
 	
-	public Record(byte[] hash, Instant time) {
-		this.hash = hash;
+	public Record(String hash, Instant time) {
+		this.cfHash = hash;
 		this.time = time;
 		this.tokens = new ArrayList<>();
 	}
 
-	public byte[] getHash() {
-		return hash;
+	public String getHash() {
+		return cfHash;
 	}
 
-	public void setHash(byte[] hash) {
-		this.hash = hash;
+	public void setHash(String hash) {
+		this.cfHash = hash;
 	}
 
 	public Instant getTime() {
@@ -31,15 +31,15 @@ public class Record {
 		this.time = time;
 	}
 
-	public ArrayList<byte[]> getTokens() {
+	public ArrayList<String> getTokens() {
 		return tokens;
 	}
 
-	public void setTokens(ArrayList<byte[]> tokens) {
+	public void setTokens(ArrayList<String> tokens) {
 		this.tokens = tokens;
 	}
 	
-	public void addToken(byte[] token) {
+	public void addToken(String token) {
 		tokens.add(token);
 	}
 }

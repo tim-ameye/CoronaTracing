@@ -16,6 +16,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.concurrent.ThreadLocalRandom;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -62,7 +63,6 @@ public class CateringClient {
 		Database db = new Database("CateringFacilities\\"+cateringFacility.toStringFileName()+"\\Database.txt");
 
 
-
 		cateringFacility.testConnection("Test from cateringside");
 
 		Registry myRegistry = LocateRegistry.getRegistry("localhost", 55545);
@@ -77,7 +77,8 @@ public class CateringClient {
 		}
 		Date date = new Date(System.currentTimeMillis());
 		Instant currentDay = date.toInstant().truncatedTo(ChronoUnit.DAYS);
-
+		db.printFile();
+		
 		CateringFacility temp = db.findCateringFacility(cateringFacility.getBusinessNumber(), cateringFacility.getPhoneNumber());
 
 
@@ -117,7 +118,7 @@ public class CateringClient {
 		while(!input.equals("Stop")) {
 			if(sc.hasNext()) {
 				input = sc.nextLine();
-				if(input == "QR") {
+				if(input.equals("QR")) {
 					MakeQRForToday(cateringFacility);
 				}
 			}
@@ -173,22 +174,28 @@ public class CateringClient {
 
 	public static void MakeQRForToday(CateringFacility cateringFacility) {
 
+		int randomNum = ThreadLocalRandom.current().nextInt(0, Integer.MAX_VALUE);
+		String randomNumString = Integer.toString(randomNum);
+		
+		String cfIndentifier = cateringFacility.toStringFileName();
 
 		Date date = new Date(System.currentTimeMillis());
 		Instant currentDay = date.toInstant().truncatedTo(ChronoUnit.DAYS);
-
+		String currentDayString = currentDay.toString().substring(0, 10);
+		
 		byte[] currentToken = cateringFacility.getCurrentToken();
 		String tokenAsString = Base64.getEncoder().encodeToString(currentToken);
 
 
+		String QRString = randomNumString + "_" + cfIndentifier + "_" + tokenAsString ;
 
 
 		// writing the tokes as a string to a qr code located at QRCodes/Brn+Buisnissnummer+Date.png
 		try {
 
-			System.out.println("[SYSTEM] Trying to make the QR code with token " + tokenAsString);
-			cateringFacility.generateQRCodeImage(tokenAsString, 200 , 200, "./QRCodes/Bnr"+cateringFacility.getBusinessNumber() +"D"+ currentDay.toString().substring(0, 10) +".png");
-			System.out.println("[SYSTEM] qr code should be found at: ./QRCodes/Bnr"+cateringFacility.getBusinessNumber() + "D" + currentDay.toString().substring(0, 10) +".png");
+			System.out.println("[SYSTEM] Trying to make the QR for string: " + QRString);
+			cateringFacility.generateQRCodeImage(QRString, 200 , 200, "./QRCodes/Bnr"+cateringFacility.getBusinessNumber() +"D"+ currentDayString +".png");
+			System.out.println("[SYSTEM] qr code should be found at: ./QRCodes/Bnr"+cateringFacility.getBusinessNumber() + "D" + currentDayString +".png");
 
 		} catch (WriterException e) {
 			System.out.println("[SYSTEM] Could not generate QR Code, WriterException :: " + e.getMessage());

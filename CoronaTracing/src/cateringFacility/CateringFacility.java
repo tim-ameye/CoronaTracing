@@ -6,6 +6,11 @@ import java.nio.file.Path;
 import java.rmi.RemoteException;
 
 import java.rmi.server.UnicastRemoteObject;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -27,6 +32,7 @@ public class CateringFacility  extends UnicastRemoteObject implements CateringIn
 	private String adress;
 	private String phoneNumber;
 	private Logger logger = Logger.getLogger("CateringFacility");
+	private KeyPair keyPair;
 	
 	private Map<Instant, byte[]> hashes;
 	private byte[] currentToken;
@@ -38,12 +44,26 @@ public class CateringFacility  extends UnicastRemoteObject implements CateringIn
 		this.phoneNumber = phoneNumber;
 		hashes = new HashMap<>();
 		currentToken = null;
+		try {
+			keyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		}
 	
 	@Override
 	public void testConnection(String s) throws RemoteException {
 		System.out.println("[CONNECTION_TEST]: "+s);
 		
+	}
+	
+	public PublicKey getPublic() {
+		return keyPair.getPublic();
+	}
+	
+	public PrivateKey getPrivate() {
+		return keyPair.getPrivate();
 	}
 	
 	

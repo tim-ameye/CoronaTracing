@@ -5,12 +5,22 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 import com.google.zxing.WriterException;
 
@@ -41,7 +51,7 @@ public class CateringClient {
 		System.out.println("Please enter business phoneNumber: ");
 		String phoneNumber = sc.nextLine();
 		CateringFacility cateringFacility = null;
-		Map<Instant, byte[]> hashes;
+		Map<Instant, byte[]> hashes = new HashMap<>();
 		try {
 			cateringFacility = new CateringFacility(businessNumber, name, adress, phoneNumber);
 			cateringFacility.testConnection("Test from cateringside");
@@ -56,7 +66,34 @@ public class CateringClient {
 				server.loginCF(cateringFacility);
 			}
 			
-			hashes = server.getHashesCatering(businessNumber, phoneNumber);
+			
+			Map<Instant, byte[]> ans = server.getHashesCatering(cateringFacility.getBusinessNumber(), cateringFacility.getPhoneNumber(), cateringFacility.getPublic());
+			Cipher cipherKey;
+			try {
+				cipherKey = Cipher.getInstance("RSA");
+				cipherKey.init(Cipher.DECRYPT_MODE, cateringFacility.getPrivate());
+				SecretKey sessionKey = new SecretKeySpec(cipherKey.doFinal(ans.get(Instant.EPOCH)), "AES");
+				Cipher cipherToken = Cipher.getInstance("AES");
+				cipherToken.init(Cipher.DECRYPT_MODE, sessionKey);
+				for(Map.Entry<Instant, byte[]> entry : ans.entrySet()) {
+					if(!entry.getKey().equals(Instant.EPOCH)) {
+						byte[] decrypt = cipherToken.doFinal(entry.getValue());
+						hashes.put(entry.getKey(), decrypt);
+					}
+				}
+			} catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InvalidKeyException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalBlockSizeException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (BadPaddingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			
 			cateringFacility.setHashes(hashes);
 

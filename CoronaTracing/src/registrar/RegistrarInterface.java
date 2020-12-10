@@ -13,7 +13,7 @@ public interface RegistrarInterface extends Remote {
 
 	public boolean registerCateringFacility(CateringInterface cf) throws RemoteException; 	//TODO CF-interface opvragen
 	public boolean loginCF(CateringInterface cf) throws RemoteException;
-	public Map<Instant, byte[]> getHashesCatering(String busNumber, String phoNumber) throws RemoteException;
+	public Map<Instant, byte[]> getHashesCatering(String busNumber, String phoNumber, PublicKey publicKey) throws RemoteException;
 	
 	
 	public boolean registerVisitor(VisitorInterface v) throws RemoteException;				//TODO User-interface opvragen

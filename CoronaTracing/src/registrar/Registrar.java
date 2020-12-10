@@ -23,6 +23,7 @@ import java.security.cert.CertificateFactory;
 import java.security.spec.InvalidKeySpecException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -37,7 +38,7 @@ import javax.crypto.SecretKeyFactory;
 import Visitor.VisitorInterface;
 import cateringFacility.CateringInterface;
 
-public class Registrar extends UnicastRemoteObject implements RegistrarInterface{
+public class Registrar extends UnicastRemoteObject implements RegistrarInterface {
 
 	/**
 	 * 
@@ -50,11 +51,11 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 	private MessageDigest messageDigest;
 	private Signature signature;
 	private PrivateKey privateKey;
-	private	Certificate certificate;
+	private Certificate certificate;
 	private KeyFactory keyFactory;
 	private KeyStore keyStore;
 	private final static String path = "files\\keystore.jks";
-	
+
 	protected Registrar(Database db) throws RemoteException {
 		super();
 		this.db = db;
@@ -65,19 +66,19 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 			this.keyGenerator = KeyGenerator.getInstance("AES");
 			this.signature = Signature.getInstance("SHA512withRSA");
 			this.keyFactory = KeyFactory.getInstance("RSA");
-			
+
 			keyGenerator.init(256, secureRandom);
-			
+
 			this.keyStore = KeyStore.getInstance("JKS");
 			char[] password = "AVB6589klp".toCharArray();
 			FileInputStream fis = new FileInputStream(path);
 			keyStore.load(fis, password);
-			
+
 			privateKey = (PrivateKey) keyStore.getKey("registrar", password);
-			
+
 			certificate = keyStore.getCertificate("registrar");
 			signature.initSign(privateKey);
-			
+
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -99,23 +100,21 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 		} catch (UnrecoverableKeyException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} 
-		
-		
+		}
+
 	}
 
-
 	public boolean registerCateringFacility(CateringInterface cf) throws RemoteException {
-		Logger logger = Logger.getLogger("Registrar"); 
+		Logger logger = Logger.getLogger("Registrar");
 		logger.info("[REGISTRAR] Trying to register a Catering Facility");
-		
+
 		String business = cf.getBusinessNumber();
 		String name = cf.getName();
 		String address = cf.getAdress();
 		String phoneNumber = cf.getPhoneNumber();
 
 		CateringFacility catering = db.findCateringFacility(business, phoneNumber);
-		if(catering != null) {
+		if (catering != null) {
 			logger.info("[REGISTRAR] The catering facility has already been registered!");
 			cf.alreadyRegistered();
 			return false;
@@ -133,47 +132,70 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			logger.info("[REGISTRAR] The secret key and first period of hashes has been calculated for:" + cateringFacility.getBusinessNumber());
+			logger.info("[REGISTRAR] The secret key and first period of hashes has been calculated for:"
+					+ cateringFacility.getBusinessNumber());
 			return true;
 		}
 	}
-
 
 	@Override
 	public boolean loginCF(CateringInterface cf) throws RemoteException {
 		// TODO Auto-generated method stub
 		return false;
 	}
-	
-	
-	@Override
-	public Map<Instant, byte[]> getHashesCatering(String busNumber, String phoNumber) throws RemoteException {
-		CateringFacility cf = db.findCateringFacility(busNumber, phoNumber);
-		Map<Instant, byte[]> hashes = cf.getHashFromToday();
-		if(hashes == null) {
-			try {
-				cf.generateHashes(10, secretKeyFactory, secureRandom, messageDigest);
-				hashes = cf.getHashFromToday();
-			} catch (InvalidKeySpecException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		return cf.getHashes();
-	}
 
+	@Override
+	public Map<Instant, byte[]> getHashesCatering(String busNumber, String phoNumber, PublicKey publicKey)
+			throws RemoteException {
+		CateringFacility cf = db.findCateringFacility(busNumber, phoNumber);
+		Map<Instant, byte[]> encodedHashes = new HashMap<>();
+		SecretKey sessionKey = keyGenerator.generateKey();
+		Cipher encryptText;
+		try {
+			encryptText = Cipher.getInstance("AES");
+			encryptText.init(Cipher.ENCRYPT_MODE, sessionKey);
+			Cipher encryptSession = Cipher.getInstance("RSA");
+			encryptSession.init(Cipher.ENCRYPT_MODE, publicKey);
+			byte[] encryptedSessionKey = encryptSession.doFinal(sessionKey.getEncoded());
+			encodedHashes.put(Instant.EPOCH, encryptedSessionKey);
+			if (cf.getHashFromToday() == null) {
+				cf.generateHashes(10, secretKeyFactory, secureRandom, messageDigest);
+			}
+			for (Map.Entry<Instant, byte[]> entry : cf.getHashFromToday().entrySet()) {
+				byte[] encoded = encryptText.doFinal(entry.getValue());
+				encodedHashes.put(entry.getKey(), encoded);
+			}
+		} catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvalidKeyException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalBlockSizeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (BadPaddingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvalidKeySpecException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return encodedHashes;
+	}
 
 	@Override
 	public boolean registerVisitor(VisitorInterface v) throws RemoteException {
-		Logger logger = Logger.getLogger("Registrar"); 
+		Logger logger = Logger.getLogger("Registrar");
 		logger.info("[REGISTRAR] trying to register a visitor");
 
 		String firstName = v.getFirstName();
 		String lastName = v.getLastName();
 		String phoneNumber = v.getPhoneNumber();
-		
+
 		User user = db.findUser(phoneNumber);
-		if(user != null) {
+		if (user != null) {
 			logger.info("The visitor has already been registered!");
 			v.alreadyRegistered();
 			return false;
@@ -195,13 +217,11 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 		}
 	}
 
-
 	@Override
 	public boolean loginVisitor() throws RemoteException {
 		// TODO Auto-generated method stub
 		return false;
 	}
-
 
 	@Override
 	public ArrayList<byte[]> getTokensVisitor(String phoNumber, PublicKey publicKey) throws RemoteException {
@@ -216,10 +236,10 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 			encryptSession.init(Cipher.ENCRYPT_MODE, publicKey);
 			byte[] encryptedSessionKey = encryptSession.doFinal(sessionKey.getEncoded());
 			result.add(encryptedSessionKey);
-			if(user.getTokensToday() == null) {
+			if (user.getTokensToday() == null) {
 				user.generateTokenSet(48, secureRandom, signature);
 			}
-			for(byte[] b:user.getTokensToday()) {
+			for (byte[] b : user.getTokensToday()) {
 				byte[] cipherText = encryptText.doFinal(b);
 				result.add(cipherText);
 			}
@@ -231,19 +251,8 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 		return result;
 	}
 
-
-
-
-
-	
-
-	
-	
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 //			RMI-Methods
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
 
-	
-	
 }

@@ -24,13 +24,13 @@ public class User {
 	private VisitorInterface visitorInt;
 	
 	private PublicKey publicKey;
-	private Map<Instant,ArrayList<byte[]>> tokens;
+	private ArrayList<Token> tokens;
 	
 	public User(String name, String surname, String phonNumber) {
 		this.name = name;
 		this.surname = surname;
 		this.phoneNumber = phonNumber;
-		this.tokens = new HashMap<Instant, ArrayList<byte[]>>();
+		this.tokens = new ArrayList<>();
 	}
 
 	public String getName() {
@@ -73,41 +73,29 @@ public class User {
 		this.publicKey = publicKey;
 	}
 	
-	public void generateTokenSet(int size, SecureRandom random, Signature rsa) throws SignatureException, InvalidKeyException {
+	public void generateTokenSet(SecureRandom random, Signature rsa) throws SignatureException, InvalidKeyException {
 		Date date = new Date(System.currentTimeMillis());
 		Instant day = date.toInstant().truncatedTo(ChronoUnit.DAYS);
-		if(tokens.containsKey(day)) return;
-		ArrayList<byte[]> generated = new ArrayList<>();
-		for(int i = 0; i < size; i++) {
-			byte[] data = new byte[64]; //TODO welk getal nemen we hier?
-			random.nextBytes(data);
-			rsa.update(data);
-			rsa.update(day.toString().getBytes());
-			byte[] token = rsa.sign();
-			generated.add(token);
-		}
-		tokens.put(day, generated);
+		Token token = new Token();
+		token.genToken(random, rsa, day);
+		tokens.add(token);
 	}
 	
-	public ArrayList<byte[]> getTokensToday() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException{
+	public Token getTokensToday() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException{
 		Date date = new Date(System.currentTimeMillis());
 		Instant day = date.toInstant().truncatedTo(ChronoUnit.DAYS);
-		ArrayList<byte[]> encrypted = new ArrayList<>();
-		if(tokens.containsKey(day)) {
-			for(byte[] token:tokens.get(day)) {
-				encrypted.add(token);
-			}			
-			return encrypted;
+		for(Token token: tokens) {
+			if(token.getDay().equals(day)) return token;
 		}
-		else return null;
+		return null;
 	}
 	
-	public Map<Instant, ArrayList<byte[]>> getTokens(){
+	public ArrayList<Token> getTokens(){
 		return tokens;
 	}
 	
-	public void addTokens(Instant instant, ArrayList<byte[]> tokens) {
-		this.tokens.put(instant, tokens);
+	public void addTokens(Token token) {
+		this.tokens.add(token);
 	}
 	
 	public String toString() { 

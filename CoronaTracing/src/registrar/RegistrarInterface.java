@@ -18,8 +18,8 @@ public interface RegistrarInterface extends Remote {
 	
 	public boolean registerVisitor(VisitorInterface v) throws RemoteException;				//TODO User-interface opvragen
 	public boolean loginVisitor() throws RemoteException;
-	public ArrayList<byte[]> getTokensVisitor(String phoNumber, PublicKey publicKey) throws RemoteException;
+	public Token getTokensVisitor(String phoNumber, PublicKey publicKey) throws RemoteException;
 	
-	public void notifyVisitors(ArrayList<byte[]> infectedTokens) throws RemoteException;
+	public void notifyVisitors(ArrayList<String> infectedTokens) throws RemoteException;
 	public void notifyFacility(ArrayList<byte[]> infectedHahses) throws RemoteException;
 }

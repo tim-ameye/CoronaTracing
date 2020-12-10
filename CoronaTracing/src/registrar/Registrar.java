@@ -204,7 +204,7 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 			db.addVisitor(user);
 			logger.info("The visitor has been added to the registrar!");
 			try {
-				user.generateTokenSet(48, secureRandom, signature);
+				user.generateTokenSet(secureRandom, signature);
 				logger.info("A first set of tokens has been calculated.");
 			} catch (SignatureException e) {
 				e.printStackTrace();
@@ -223,37 +223,33 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 	}
 
 	@Override
-	public ArrayList<byte[]> getTokensVisitor(String phoNumber, PublicKey publicKey) throws RemoteException {
+	public Token getTokensVisitor(String phoNumber, PublicKey publicKey) throws RemoteException {
 		User user = db.findUser(phoNumber);
 		user.setPublicKey(publicKey);
-		ArrayList<byte[]> result = new ArrayList<>();
 		SecretKey sessionKey = keyGenerator.generateKey();
+		Token token = null;
 		try {
-			Cipher encryptText = Cipher.getInstance("AES");
-			encryptText.init(Cipher.ENCRYPT_MODE, sessionKey);
-			Cipher encryptSession = Cipher.getInstance("RSA");
-			encryptSession.init(Cipher.ENCRYPT_MODE, publicKey);
-			byte[] encryptedSessionKey = encryptSession.doFinal(sessionKey.getEncoded());
-			result.add(encryptedSessionKey);
-			if (user.getTokensToday() == null) {
-				user.generateTokenSet(48, secureRandom, signature);
-			}
-			for (byte[] b : user.getTokensToday()) {
-				byte[] cipherText = encryptText.doFinal(b);
-				result.add(cipherText);
+			token = user.getTokensToday();
+			if(token == null) {
+				user.generateTokenSet(secureRandom, signature);
+				token = user.getTokensToday();
 			}
 		} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException
-				| BadPaddingException | SignatureException e) {
+				| BadPaddingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SignatureException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return result;
+		Token encrypted = token.encrypt(sessionKey, publicKey);
+		return encrypted;
 	}
 
 	@Override
-	public void notifyVisitors(ArrayList<byte[]> infectedTokens) throws RemoteException {
+	public void notifyVisitors(ArrayList<String> infectedTokens) throws RemoteException {
 		ArrayList<User> infectedUsers = new ArrayList<>();
-		for(byte[] infected: infectedTokens) {
+		for(String infected: infectedTokens) {
 			User infectedUser = db.findUserWithToken(infected);
 			if(infectedUser == null) System.out.println("No user with one of the infected tokens has been found.");
 			else if(!infectedUsers.contains(infectedUser)) {
@@ -263,8 +259,6 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 		for(User user: infectedUsers) {
 			System.out.println(user.getName() + " needs to be contacted his/her phonenumber is " + user.getPhoneNumber() + ".");
 		}
-		
-		
 	}
 
 	@Override

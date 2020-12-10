@@ -11,6 +11,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,7 @@ public class Database {
 		logger.info("Started reading the database file.");
 		// read the database file
 		Scanner sc = new Scanner(dbFile);
+		Scanner fileScanner = null;
 		if (sc.hasNext()) {
 			FileInputStream sigfig = null;
 			File sig = null;
@@ -63,17 +65,16 @@ public class Database {
 				User user = new User(info[1], info[2], info[0]);
 				for (int i = 3; i < info.length; i++) {
 					Instant date = Instant.parse(info[i]);
-					ArrayList<byte[]> tokens = new ArrayList<>();
-					for (int j = 0; j < 48; j++) {
-						sig = new File("files\\users\\" + user.toString() + "\\" + info[i].substring(0, 10) + "_" + j);
-						sigfig = new FileInputStream(
-								"files\\users\\" + user.toString() + "\\" + info[i].substring(0, 10) + "_" + j);
-						byte[] signature = new byte[(int) sig.length()];
-						sigfig.read(signature);
-						sigfig.close();
-						tokens.add(signature);
+					Token token = new Token();
+					token.setDay(date);
+					fileScanner = new Scanner("files\\users\\" + user.toString() + "\\" + info[i].substring(0, 10) + ".txt");
+					while(fileScanner.hasNextLine()) {
+						String tokenLineSigned = fileScanner.nextLine();
+						String tokenLineUnsigned = fileScanner.nextLine();
+						token.addToken(tokenLineSigned, tokenLineUnsigned);
 					}
-					user.addTokens(date, tokens);
+					fileScanner.close();
+					user.addTokens(token);
 				}
 				users.add(user);
 				line = sc.nextLine();
@@ -85,6 +86,7 @@ public class Database {
 	public void printFile() throws IOException {
 		PrintWriter pw = new PrintWriter(dbFile);
 		FileOutputStream sigfos = null;
+		PrintWriter fileWriter = null;
 		File sigfile = null;
 		pw.println("#Facilities");
 		for (CateringFacility cf : facilities) {
@@ -113,31 +115,26 @@ public class Database {
 		pw.println("#Users");
 		for (User u : users) {
 			pw.print(u.toString());
-			Map<Instant, ArrayList<byte[]>> outOfDate = u.getTokens();
-			Map<Instant, ArrayList<byte[]>> tokens = u.getTokens();
-			for (Map.Entry<Instant, ArrayList<byte[]>> entry : tokens.entrySet()) {
+			ArrayList<Token> outOfDate = u.getTokens();
+			ArrayList<Token> tokens = u.getTokens();
+			for (Token token: tokens) {
 				sigfile = new File("files\\users\\" + u.toString());
 				if (!sigfile.exists()) {
 					sigfile.mkdirs();
 				}
-				int i = 0;
-				outOfDate.remove(entry.getKey());
+				outOfDate.remove(token);
 				// Store signatures in files
-				pw.println("_" + entry.getKey().toString());
-				for (byte[] token : entry.getValue()) {
-					sigfos = new FileOutputStream("files\\users\\" + u.toString() + "\\"
-							+ entry.getKey().toString().substring(0, 10) + "_" + i);
-					sigfos.write(token);
-					sigfos.close();
-					i++;
+				pw.println("_" + token.getDay().toString());
+				for (int i = 0; i < token.getSignedTokens().size(); i++) {
+					fileWriter = new PrintWriter("files\\users\\" + u.toString() + "\\"
+							+ token.getDay().toString().substring(0, 10) + ".txt");
+					fileWriter.println(token.getSignedTokens().get(i));
+					fileWriter.println(token.getUnsignedTokens().get(i));
 				}
+				fileWriter.close();
 			}
-			for (Map.Entry<Instant, ArrayList<byte[]>> entry : outOfDate.entrySet()) {
-				sigfile = new File("files\\users\\" + u.toString() + "\\" + entry.getKey().toString().substring(0, 10));
-				for (int i = 0; i < entry.getValue().size(); i++) {
-					File remove = new File(sigfile.getPath(), "_" + i);
-					remove.delete();
-				}
+			for (Token token: outOfDate) {
+				sigfile = new File("files\\users\\" + u.toString() + "\\" + token.getDay().toString().substring(0, 10) + ".txt");
 				sigfile.delete();
 			}
 		}
@@ -174,12 +171,11 @@ public class Database {
 		}
 	}
 
-	public User findUserWithToken(byte[] infected) {
+	public User findUserWithToken(String infectedToken) {
 		for (User user : users) {
-			for (Entry<Instant, ArrayList<byte[]>> entry : user.getTokens().entrySet()) {
-				for (byte[] token : entry.getValue()) {
-					if (infected.equals(token))
-						return user;
+			for (Token token: user.getTokens()) {
+				if(token.contains(infectedToken)) {
+					return user;
 				}
 			}
 		}
@@ -199,14 +195,14 @@ public class Database {
 	public void removeOutOfDateTokens(int expirationTime) {
 		Instant expirationDay = new Date(System.currentTimeMillis()).toInstant().minus(expirationTime, ChronoUnit.DAYS);
 		for (User user : users) {
-			ArrayList<Instant> outOfDate = new ArrayList<>();
-			for (Entry<Instant, ArrayList<byte[]>> entry : user.getTokens().entrySet()) {
-				if (entry.getKey().isBefore(expirationDay)) {
-					outOfDate.add(entry.getKey());
+			ArrayList<Token> outOfDate = new ArrayList<>();
+			for (Token token: user.getTokens()) {
+				if (token.getDay().isBefore(expirationDay)) {
+					outOfDate.add(token);
 				}
 			}
-			for (Instant instant : outOfDate) {
-				user.getTokens().remove(instant);
+			for (Token token : outOfDate) {
+				user.getTokens().remove(token);
 			}
 		}
 	}

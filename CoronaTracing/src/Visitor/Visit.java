@@ -11,7 +11,7 @@ public class Visit {
 		this.userToken = null;
 	}
 	
-	public Visit(int randomNumber, String cateringFacility, byte[] userToken) {
+	public Visit(int randomNumber, byte[] userToken, String cateringFacility) {
 		this.randomNumber = randomNumber;
 		this.cateringFacility = cateringFacility;
 		this.userToken = userToken;

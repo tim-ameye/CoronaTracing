@@ -217,7 +217,10 @@ public class guiVisitor {
 				panelSucces.setVisible(true);
 				panelScan.setVisible(false);
 				Capsule capsule = visitorClient.makeCapsule(textField_QRinputstring.getText());
-				visitorClient.sendCapsule(capsule);
+				boolean b = visitorClient.sendCapsule(capsule);
+				if(b) {
+					visitorClient.addVisit();
+				}
 			}
 		});
 		btnScanQR.setFont(new Font("Verdana", Font.PLAIN, 20));

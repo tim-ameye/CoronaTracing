@@ -9,6 +9,9 @@ import java.awt.CardLayout;
 import javax.swing.JLabel;
 import java.awt.Font;
 import javax.swing.SwingConstants;
+
+import mixingProxy.Capsule;
+
 import javax.swing.JTextField;
 import javax.swing.JButton;
 import javax.crypto.BadPaddingException;
@@ -213,8 +216,8 @@ public class guiVisitor {
 				//TODO controleren of die wel goed wordt gegenereerd
 				panelSucces.setVisible(true);
 				panelScan.setVisible(false);
-				visitorClient.makeCapsule(textField_QRinputstring.getText());
-				
+				Capsule capsule = visitorClient.makeCapsule(textField_QRinputstring.getText());
+				visitorClient.sendCapsule(capsule);
 			}
 		});
 		btnScanQR.setFont(new Font("Verdana", Font.PLAIN, 20));

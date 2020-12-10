@@ -1,8 +1,9 @@
 package mixingProxy;
 
+
 import java.time.Instant;
 
-public class Capsule {
+public class Capsule{
 	private Instant currentTimeInterval;
 	private byte[] usertoken;
 	private String qrToken; //deze moet dan na toekomen geUnhashed worden

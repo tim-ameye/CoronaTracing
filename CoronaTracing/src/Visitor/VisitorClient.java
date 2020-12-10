@@ -10,7 +10,7 @@ import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
-import java.sql.Date;
+import java.util.Date;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Vector;
@@ -32,13 +32,15 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 	RegistrarInterface registerServer = null;
 	MixingProxyInterface mixingProxyServer = null;
 	Registry myRegistry = null;
+	Registry mixingProxyRegistry = null;
 	private ArrayList<byte[]> tokens = new ArrayList<>();
 
 	
 	public VisitorClient() throws RemoteException, NotBoundException {
 		myRegistry = LocateRegistry.getRegistry("localhost", 55545);
+		mixingProxyRegistry = LocateRegistry.getRegistry("localhost",55546);
 		registerServer = (RegistrarInterface) myRegistry.lookup("Registrar"); 
-		mixingProxyServer = (MixingProxyInterface) myRegistry.lookup("MixingProxy");
+		mixingProxyServer = (MixingProxyInterface) mixingProxyRegistry.lookup("MixingProxy");
 		this.visitor = null;
 	}
 	
@@ -98,7 +100,6 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 			byte[] decrypt = cipherToken.doFinal(ans.get(i));
 			tokens.add(decrypt);
 		}
-	
 	}
 	
 	public static void main(String[] args) throws RemoteException, NotBoundException {
@@ -150,7 +151,7 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 			mixingProxyServer.registerVisit(capsule);
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			e.printStackTrace(); 
 		}
 		
 	}

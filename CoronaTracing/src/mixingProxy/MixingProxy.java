@@ -52,7 +52,38 @@ public class MixingProxy extends UnicastRemoteObject implements MixingProxyInter
 	}
 	@Override
 	public boolean registerVisit(Capsule capsule) throws RemoteException {
-		// TODO Auto-generated method stub
+		//1: validate of the user token
+		byte[] userToken = capsule.getUsertoken();
+		char[] password = "AVB6589klp".toCharArray();
+		try {
+			PublicKey publicKey = (PublicKey) keyStore.getKey("mixingproxy", password);
+			Signature sig = Signature.getInstance("SHA512withRSA ");
+			sig.initVerify(publicKey);
+			sig.update(userToken);
+			boolean b = sig.verify(userToken);
+			System.out.println(b);
+		} catch (UnrecoverableKeyException | KeyStoreException | NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvalidKeyException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SignatureException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	
+		
+
+		
+		
+	
+		
+		//2: qrtoken is voor de huidige dag
+		
+		//3: werd nog niet eerder gebruikt
+		
+		//4: alle 3 voldaan, sign qrToken en stuur antwoord terug. niet-voldaan: return false
 		return false;
 	}
 

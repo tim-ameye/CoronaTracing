@@ -138,8 +138,16 @@ public class CateringFacility  extends UnicastRemoteObject implements CateringIn
 		logger.info("You are already registered to the registrar, please login to continue.");
 		
 	}
-
-
+	public String toString() {
+		String catering = businessNumber + "_" + name + "_" + adress + "_" + phoneNumber;
+		for(Map.Entry<Instant,byte[]> entry : hashes.entrySet()) {
+			catering += "_" + entry.getKey().toString();
+		}
+		return catering;
+	}
+	public String toStringFileName() {
+		return businessNumber + "_" + phoneNumber;
+	}
 
 	
 	

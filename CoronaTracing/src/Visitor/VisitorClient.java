@@ -96,6 +96,14 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 		return registerServer.registerVisitor(v);
 	}
 	
+	public ArrayList<Visit> getVisits() {
+		return visits;
+	}
+
+	public void setVisits(ArrayList<Visit> visits) {
+		this.visits = visits;
+	}
+
 	public void getTokens() throws RemoteException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException {
 		ArrayList<byte[]> ans = registerServer.getTokensVisitor(visitor.getPhoneNumber(), visitor.getPublicKey());
 		Cipher cipherKey = Cipher.getInstance("RSA");

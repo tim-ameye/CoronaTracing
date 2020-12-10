@@ -87,7 +87,7 @@ public class MixingProxy extends UnicastRemoteObject implements MixingProxyInter
 		//3: werd nog niet eerder gebruikt
 		
 		//4: alle 3 voldaan, sign qrToken en stuur antwoord terug. niet-voldaan: return false
-		return true;
+		return false;
 	}
 
 	@Override

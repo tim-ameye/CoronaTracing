@@ -289,4 +289,11 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 		Collections.shuffle(pseudonymen);
 		return pseudonymen;
 	}
+
+	@Override
+	public void InformUsers(List<String> notInformed) {
+		// TODO 
+		// contact everyone in this list!
+		
+	}
 }

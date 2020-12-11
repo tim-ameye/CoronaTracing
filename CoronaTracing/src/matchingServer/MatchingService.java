@@ -228,10 +228,10 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 		RegistrarInterface registrar = (RegistrarInterface) myRegistry.lookup("Registrar");
 
 		allTokens.addAll(registrar.getCfHashesFromToday());
-
+		
 	}
 
-	void contactUsers(String cfToken, Instant instant) throws FileNotFoundException {
+	void contactUsers(String cfToken, Instant instant) throws FileNotFoundException, RemoteException, NotBoundException {
 		database.readFile();
 		matchingService = database.getMatchingService();
 		Record criticRecord = null;
@@ -245,12 +245,37 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 				}
 			}
 			if (found) {
+				// check which users did not yet get informed and contact them by using the registrar
+				List<Boolean> informed = criticRecord.getInformed();
+				List<String> userTokens = criticRecord.getTokens();
+
+				List<String> notInformed = new ArrayList<>();
+				
+				for (int i = 0; i < informed.size(); i++) {
+					if (!informed.get(i)) {
+						notInformed.add(userTokens.get(i));
+					}
+				}
+				if (notInformed.size() > 0) {
+					System.out.println("[Matchingservice] Trying to contact users who came into contact with an infected person, but were not informed yet");
+					
+					Registry myRegistry = LocateRegistry.getRegistry("localhost", 55545);
+					RegistrarInterface registrar = (RegistrarInterface) myRegistry.lookup("Registrar");
+					
+					//TODO
+					registrar.InformUsers(notInformed);
+
+					System.out.println("[Matchingservice] Users were succesfully contacted!");
+
+				}else {
+					System.out.println("[Matchingservice] All users were already update about their contact with an infected person, very nice! ");
+				}
+								
+				
 				
 			}else {
 				System.out.println("[Matchingservice] Should not get here...");
 			}
-			
-			
 		}else {
 			System.out.println("[Matchingservice] Is we're here we're kinda fucked.");
 		}

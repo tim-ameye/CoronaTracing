@@ -25,10 +25,12 @@ public class Token implements Serializable{
 	private ArrayList<String> signedTokens;
 	private Instant day;
 	private String sessionKey;
+	private int itterator;
 
 	public Token() {
 		unsignedTokens = new ArrayList<>();
 		signedTokens = new ArrayList<>();
+		itterator = 0;
 	}
 
 	public ArrayList<String> getUnsignedTokens() {
@@ -64,6 +66,7 @@ public class Token implements Serializable{
 	}
 
 	public void genToken(SecureRandom random, Signature rsa, Instant day) {
+		this.day = day;
 		try {
 			for (int i = 0; i < 48; i++) {
 				byte[] token = new byte[64];
@@ -146,5 +149,12 @@ public class Token implements Serializable{
 				return true;
 		}
 		return false;
+	}
+	
+	public String[] getUnusedToken() {
+		String[] result = new String[2];
+		result[0] = signedTokens.get(itterator);
+		result[1] = unsignedTokens.get(itterator);
+		return result;
 	}
 }

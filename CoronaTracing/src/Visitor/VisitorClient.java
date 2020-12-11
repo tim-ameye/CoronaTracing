@@ -26,6 +26,7 @@ import javax.crypto.spec.SecretKeySpec;
 import mixingProxy.Capsule;
 import mixingProxy.MixingProxyInterface;
 import registrar.RegistrarInterface;
+import registrar.Token;
 
 public class VisitorClient extends UnicastRemoteObject implements VisitorInterface{
 	/**
@@ -38,9 +39,10 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 	MixingProxyInterface mixingProxyServer = null;
 	Registry myRegistry = null;
 	Registry mixingProxyRegistry = null;
-	private ArrayList<byte[]> tokens = new ArrayList<>();
+	private Token token;
 	private ArrayList<Visit> visits = new ArrayList<>();
 	private String qrCode;
+	private String[] currentToken;
 
 	
 	public VisitorClient() throws RemoteException, NotBoundException {
@@ -105,16 +107,8 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 	}
 
 	public void getTokens() throws RemoteException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException {
-		ArrayList<byte[]> ans = registerServer.getTokensVisitor(visitor.getPhoneNumber(), visitor.getPublicKey());
-		Cipher cipherKey = Cipher.getInstance("RSA");
-		cipherKey.init(Cipher.DECRYPT_MODE, visitor.getPrivateKey());
-		SecretKey sessionKey = new SecretKeySpec(cipherKey.doFinal(ans.get(0)), "AES");
-		Cipher cipherToken = Cipher.getInstance("AES");
-		cipherToken.init(Cipher.DECRYPT_MODE, sessionKey);
-		for(int i = 1; i < ans.size(); i++) {
-			byte[] decrypt = cipherToken.doFinal(ans.get(i));
-			tokens.add(decrypt);
-		}
+		Token ans = registerServer.getTokensVisitor(visitor.getPhoneNumber(), visitor.getPublicKey());
+		this.token = ans.decrypt(visitor.getPrivateKey());
 	}
 	
 	public static void main(String[] args) throws RemoteException, NotBoundException {
@@ -158,7 +152,8 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 		String[] arguments = text.split("_");
 		Date date = new Date(System.currentTimeMillis());
 		Instant day = roundTime(date);
-		Capsule capsule = new Capsule(day, tokens.get(0), arguments[2]);
+		currentToken = token.getUnusedToken();
+		Capsule capsule = new Capsule(day, currentToken[1], currentToken[2], arguments[2]);
 		return capsule;
 	}
 
@@ -183,7 +178,7 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 	
 	public void addVisit() {//TODO controleren
 		String[] arguments = qrCode.split("_");
-		Visit visit = new Visit(Integer.parseInt(arguments[0]), tokens.remove(0), arguments[3]); //randomnummmber, unique identifier, hash catering
+		Visit visit = new Visit(Integer.parseInt(arguments[0]), currentToken[0], currentToken[1], arguments[2]); //randomnummmber, unique identifier, hash catering
 		visits.add(visit);
 	}
 

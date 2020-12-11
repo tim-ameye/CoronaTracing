@@ -67,7 +67,7 @@ public class Database {
 					Instant date = Instant.parse(info[i]);
 					Token token = new Token();
 					token.setDay(date);
-					fileScanner = new Scanner("files\\users\\" + user.toString() + "\\" + info[i].substring(0, 10) + ".txt");
+					fileScanner = new Scanner(new File("files\\users\\" + user.toString() + "\\" + info[i].substring(0, 10) + ".txt"));
 					while(fileScanner.hasNextLine()) {
 						String tokenLineSigned = fileScanner.nextLine();
 						String tokenLineUnsigned = fileScanner.nextLine();
@@ -122,20 +122,16 @@ public class Database {
 				if (!sigfile.exists()) {
 					sigfile.mkdirs();
 				}
-				outOfDate.remove(token);
 				// Store signatures in files
 				pw.println("_" + token.getDay().toString());
+				fileWriter = new PrintWriter("files\\users\\" + u.toString() + "\\"
+						+ token.getDay().toString().substring(0, 10) + ".txt");
 				for (int i = 0; i < token.getSignedTokens().size(); i++) {
-					fileWriter = new PrintWriter("files\\users\\" + u.toString() + "\\"
-							+ token.getDay().toString().substring(0, 10) + ".txt");
 					fileWriter.println(token.getSignedTokens().get(i));
 					fileWriter.println(token.getUnsignedTokens().get(i));
+					fileWriter.flush();
 				}
 				fileWriter.close();
-			}
-			for (Token token: outOfDate) {
-				sigfile = new File("files\\users\\" + u.toString() + "\\" + token.getDay().toString().substring(0, 10) + ".txt");
-				sigfile.delete();
 			}
 		}
 		pw.println("#End");
@@ -203,6 +199,8 @@ public class Database {
 			}
 			for (Token token : outOfDate) {
 				user.getTokens().remove(token);
+				File sigfile = new File("files\\users\\" + user.toString() + "\\" + token.getDay().toString().substring(0, 10) + ".txt");
+				sigfile.delete();
 			}
 		}
 	}

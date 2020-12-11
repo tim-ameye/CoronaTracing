@@ -3,18 +3,19 @@ package Visitor;
 public class Visit {
 	private int randomNumber;
 	private String cateringFacility;
-	private byte[] userToken;
+	private String userTokenSigned;
+	private String userTokenUnsigned;
 	
 	public Visit() {
 		this.randomNumber = 0;
 		this.cateringFacility = null;
-		this.userToken = null;
 	}
 	
-	public Visit(int randomNumber, byte[] userToken, String cateringFacility) {
+	public Visit(int randomNumber, String signed, String usigned, String cateringFacility) {
 		this.randomNumber = randomNumber;
 		this.cateringFacility = cateringFacility;
-		this.userToken = userToken;
+		this.userTokenSigned = signed;
+		this.userTokenUnsigned = usigned;
 	}
 
 	public int getRandomNumber() {
@@ -33,11 +34,19 @@ public class Visit {
 		this.cateringFacility = cateringFacility;
 	}
 
-	public byte[] getUserToken() {
-		return userToken;
+	public String getUserTokenSigned() {
+		return userTokenSigned;
 	}
 
-	public void setUserToken(byte[] userToken) {
-		this.userToken = userToken;
+	public void setUserTokenSigned(String userTokenSigned) {
+		this.userTokenSigned = userTokenSigned;
+	}
+
+	public String getUserTokenUnsigned() {
+		return userTokenUnsigned;
+	}
+
+	public void setUserTokenUnsigned(String userTokenUnsigned) {
+		this.userTokenUnsigned = userTokenUnsigned;
 	}
 }

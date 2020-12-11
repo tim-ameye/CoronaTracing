@@ -2,6 +2,8 @@ package matchingServer;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.security.NoSuchAlgorithmException;
@@ -16,13 +18,13 @@ import registrar.Registrar;
 
 public class Server {
 
-	public static void main(String[] args) throws FileNotFoundException {
+	public static void main(String[] args) throws FileNotFoundException, RemoteException, NotBoundException {
 		
 		Scanner sc = new Scanner(System.in);
 		Registry registry = null;
 		
 		String dbFile = "MachingService\\Database.txt";
-		MatchingService matchingService = new MatchingService()
+		MatchingService matchingService = new MatchingService();
 		
 		String input = "";
 		Date date = new Date(System.currentTimeMillis());

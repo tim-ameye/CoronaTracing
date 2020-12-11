@@ -42,11 +42,11 @@ public class Visit {
 		this.randomNumber = randomNumber;
 	}
 
-	public String getCateringFacility() {
+	public String getCateringFacilityToken() {
 		return cateringFacilityToken;
 	}
 
-	public void setCateringFacility(String cateringFacility) {
+	public void setCateringFacilityToken(String cateringFacility) {
 		this.cateringFacilityToken = cateringFacility;
 	}
 

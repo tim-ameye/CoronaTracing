@@ -1,6 +1,8 @@
 package Visitor;
 
 import java.awt.EventQueue;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -8,12 +10,17 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.util.Date;
 import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Vector;
 
 import javax.crypto.BadPaddingException;
@@ -28,7 +35,7 @@ import mixingProxy.MixingProxyInterface;
 import registrar.RegistrarInterface;
 import registrar.Token;
 
-public class VisitorClient extends UnicastRemoteObject implements VisitorInterface{
+public class VisitorClient extends UnicastRemoteObject implements VisitorInterface {
 	/**
 	 * 
 	 */
@@ -44,61 +51,60 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 	private String qrCode;
 	private String[] currentToken;
 
-	
 	public VisitorClient() throws RemoteException, NotBoundException {
 		myRegistry = LocateRegistry.getRegistry("localhost", 55545);
-		mixingProxyRegistry = LocateRegistry.getRegistry("localhost",55546);
-		registerServer = (RegistrarInterface) myRegistry.lookup("Registrar"); 
+		mixingProxyRegistry = LocateRegistry.getRegistry("localhost", 55546);
+		registerServer = (RegistrarInterface) myRegistry.lookup("Registrar");
 		mixingProxyServer = (MixingProxyInterface) mixingProxyRegistry.lookup("MixingProxy");
 		this.visitor = null;
 
 	}
-	
+
 	public Visitor getVisitor() throws RemoteException {
 		return this.visitor;
 	}
-	
+
 	public void setVisitor(Visitor visitor) {
 		this.visitor = visitor;
 	}
-	
-	public void testConnection(String s) throws RemoteException{
-		//TODO
+
+	public void testConnection(String s) throws RemoteException {
+		// TODO
 	}
-	
-	public String getFirstName() throws RemoteException{
+
+	public String getFirstName() throws RemoteException {
 		return this.visitor.getFirstName();
 	}
-	
-	public String getLastName() throws RemoteException{
+
+	public String getLastName() throws RemoteException {
 		return this.visitor.getLastName();
 	}
-	
-	public String getPhoneNumber() throws RemoteException{
+
+	public String getPhoneNumber() throws RemoteException {
 		return this.visitor.getPhoneNumber();
 	}
-	
-	public void alreadyRegistered() throws RemoteException{
-		//TODO
+
+	public void alreadyRegistered() throws RemoteException {
+		// TODO
 	}
-	
-	public void setGUI(guiVisitor t) throws RemoteException{
+
+	public void setGUI(guiVisitor t) throws RemoteException {
 		this.ui = t;
 	}
-	
-	public guiVisitor getGUI() throws RemoteException{
+
+	public guiVisitor getGUI() throws RemoteException {
 		return this.ui;
 	}
-	
-	public void updateUI(Vector v) throws RemoteException{
-		//TODO
+
+	public void updateUI(Vector v) throws RemoteException {
+		// TODO
 	}
-	
+
 	public boolean register(Visitor v) throws RemoteException {
 		this.visitor = v;
 		return registerServer.registerVisitor(v);
 	}
-	
+
 	public ArrayList<Visit> getVisits() {
 		return visits;
 	}
@@ -107,45 +113,23 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 		this.visits = visits;
 	}
 
-	public void getTokens() throws RemoteException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException {
+	public void getTokens() throws RemoteException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException,
+			NoSuchAlgorithmException, NoSuchPaddingException {
 		Token ans = registerServer.getTokensVisitor(visitor.getPhoneNumber(), visitor.getPublicKey());
 		this.token = ans.decrypt(visitor.getPrivateKey());
 	}
-	
+
 	public static void main(String[] args) throws RemoteException, NotBoundException {
 		VisitorClient visitorClient = new VisitorClient();
 		EventQueue.invokeLater(() -> {
-				try {
-					guiVisitor window = new guiVisitor(visitorClient);
-					window.setVisible(true);
-					
-				} catch (Exception e) {
-					e.printStackTrace();
-				}	
+			try {
+				guiVisitor window = new guiVisitor(visitorClient);
+				window.setVisible(true);
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		});
-		/*
-		System.out.println("Please enter first name : ");
-		String firstName = sc.nextLine();
-		System.out.println("Please enter last name : ");
-		String lastName = sc.nextLine();
-		System.out.println("Please enter phoneNumber: ");
-		String phoneNumber = sc.nextLine();
-		
-		try {
-			Visitor visitor = new Visitor(firstName, lastName, phoneNumber);
-			visitor.testConnection("Test from visitorside");
-			
-			Registry myRegistry = LocateRegistry.getRegistry("localhost", 55545);
-			server = (RegistrarInterface) myRegistry.lookup("Registrar"); 
-			
-			server.registerVisitor(visitor);
-			
-			
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		} catch (NotBoundException e) {
-			e.printStackTrace();
-		}*/
 	}
 
 	public Capsule makeCapsule(String text) {
@@ -154,32 +138,70 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 		Date date = new Date(System.currentTimeMillis());
 		Instant day = roundTime(date);
 		currentToken = token.getUnusedToken();
-		Capsule capsule = new Capsule(day, currentToken[1], currentToken[2], arguments[2]);
+		Capsule capsule = new Capsule(day, currentToken[0], currentToken[1], arguments[2]);
 		return capsule;
 	}
 
 	public boolean sendCapsule(Capsule capsule) {
 		try {
-			boolean b = mixingProxyServer.registerVisit(capsule);
-			return b;
-		} catch (RemoteException e) {
+			String responseEncrypted = mixingProxyServer.registerVisit(capsule);
+			KeyStore keystore = KeyStore.getInstance("JKS");
+			char[] password = "AVB6589klp".toCharArray();
+			FileInputStream fis = new FileInputStream("files\\keystore.jks");
+			keystore.load(fis, password);
+			Certificate cert = keystore.getCertificate("mixingProxy");
+			Cipher decrypt = Cipher.getInstance("RSA");
+			decrypt.init(Cipher.DECRYPT_MODE, cert);
+			byte[] responseByte = decrypt.doFinal(Base64.getDecoder().decode(responseEncrypted));
+			String response = new String(responseByte);
+			System.out.println(response);
+			if (response.equals("Accepted"))
+				return true;
+			else if (response.equals("Token already used")) {
+				currentToken = token.getUnusedToken();
+				capsule = new Capsule(capsule.getCurrentTimeInterval(), currentToken[0], currentToken[1],
+						capsule.getQrToken());
+				if (sendCapsule(capsule))
+					return true;
+			} else if (response.equals("Token not valid")) {
+				System.out.println("You have submitted an invalid token. Please do not try to hack the system!");
+				return false;
+			} else if (response.equals("Wrong day")) {
+				System.out.println(
+						"The token you submitted was for a wrong day. New tokens are being requested and send...");
+				getTokens();
+				currentToken = token.getUnusedToken();
+				capsule = new Capsule(capsule.getCurrentTimeInterval(), currentToken[0], currentToken[1],
+						capsule.getQrToken());
+				if (sendCapsule(capsule))
+					return true;
+			} else if (response.equals("")) {
+				System.out.println("An error occured.");
+				return false;
+			}
+		} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | NoSuchAlgorithmException
+				| NoSuchPaddingException | KeyStoreException | CertificateException | IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace(); 
+			e.printStackTrace();
 		}
 		return false;
-		
 	}
-	
+
 	public Instant roundTime(Date date) {
 		Instant minutes = date.toInstant().truncatedTo(ChronoUnit.MINUTES);
 		Instant hours = date.toInstant().truncatedTo(ChronoUnit.HOURS);
-		if (minutes.toEpochMilli()-hours.toEpochMilli() > 1.8e+6) hours.plus(30,ChronoUnit.MINUTES);
+		if (minutes.toEpochMilli() - hours.toEpochMilli() > 1.8e+6)
+			hours.plus(30, ChronoUnit.MINUTES);
 		return hours;
 	}
-	
-	public void addVisit() {//TODO controleren
+
+	public void addVisit() {// TODO controleren
 		String[] arguments = qrCode.split("_");
-		Visit visit = new Visit(Integer.parseInt(arguments[0]), currentToken[0], currentToken[1], arguments[2]); //randomnummmber, unique identifier, hash catering
+		Visit visit = new Visit(Integer.parseInt(arguments[0]), currentToken[0], currentToken[1], arguments[2]); // randomnummmber,
+																													// unique
+																													// identifier,
+																													// hash
+																													// catering
 		visit.setBusinessNumber(arguments[1]);
 		Date date = new Date(System.currentTimeMillis());
 		Instant day = roundTime(date);

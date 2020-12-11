@@ -17,7 +17,7 @@ public class Visit {
 		this.cateringFacilityToken = null;
 	}
 	
-	public Visit(int randomNumber, String signed, String usigned, String cateringFacility, Instant instant) {
+	public Visit(int randomNumber, String signed, String usigned, String cateringFacility) {
 		this.randomNumber = randomNumber;
 		this.cateringFacilityToken = cateringFacility;
 		this.userTokenSigned = signed;

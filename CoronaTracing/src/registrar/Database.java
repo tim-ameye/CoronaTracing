@@ -1,8 +1,6 @@
 package registrar;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.security.NoSuchAlgorithmException;
@@ -10,10 +8,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
@@ -39,23 +34,20 @@ public class Database {
 		Scanner sc = new Scanner(dbFile);
 		Scanner fileScanner = null;
 		if (sc.hasNext()) {
-			FileInputStream sigfig = null;
 			File sig = null;
 			sc.nextLine();
 			String line = sc.nextLine();
 			while (!line.equals("#Users")) {
 				String[] info = line.split("_");
 				CateringFacility cf = new CateringFacility(info[0], info[1], info[2], info[3]);
-				for (int i = 4; i < info.length; i++) {
-					Instant date = Instant.parse(info[i]);
-					sig = new File(
-							"files\\catering\\" + cf.toStringFileName() + "\\" + info[i].toString().substring(0, 10));
-					sigfig = new FileInputStream(
-							"files\\catering\\" + cf.toStringFileName() + "\\" + info[i].toString().substring(0, 10));
-					byte[] token = new byte[(int) sig.length()];
-					sigfig.read(token);
-					cf.addHashes(date, token);
+				sig = new File("files\\catering\\" + cf.toStringFileName() + ".txt");
+				fileScanner = new Scanner(sig);
+				while(fileScanner.hasNextLine()) {
+					String date = fileScanner.nextLine();
+					String hash = fileScanner.nextLine();
+					cf.addHashes(date, hash);
 				}
+				fileScanner.close();
 				facilities.add(cf);
 				line = sc.nextLine();
 			}
@@ -85,37 +77,27 @@ public class Database {
 
 	public void printFile() throws IOException {
 		PrintWriter pw = new PrintWriter(dbFile);
-		FileOutputStream sigfos = null;
 		PrintWriter fileWriter = null;
 		File sigfile = null;
 		pw.println("#Facilities");
 		for (CateringFacility cf : facilities) {
 			pw.println(cf.toString());
-			sigfile = new File("files\\catering\\" + cf.toStringFileName());
+			sigfile = new File("files\\catering");
 			if (!sigfile.exists()) {
 				sigfile.mkdirs();
 			}
-			String[] filesArray = sigfile.list();
-			List<String> files = Arrays.asList(filesArray);
-			Map<Instant, byte[]> tokens = cf.getHashes();
-			for (Map.Entry<Instant, byte[]> entry : tokens.entrySet()) {
-				if (files.contains(entry.getKey().toString().substring(0, 10))) {
-					files.remove(entry.getKey().toString().substring(0, 10));
-				}
-				sigfos = new FileOutputStream("files\\catering\\" + cf.toStringFileName() + "\\"
-						+ entry.getKey().toString().substring(0, 10));
-				sigfos.write(entry.getValue());
-				sigfos.close();
+			Map<String, String> tokens = cf.getHashes();
+			fileWriter = new PrintWriter("files\\catering\\" + cf.toStringFileName() + ".txt");
+			for (Map.Entry<String, String> entry : tokens.entrySet()) {
+				fileWriter.println(entry.getKey());
+				fileWriter.println(entry.getValue());
+				fileWriter.flush();
 			}
-			for (String file : files) {
-				File remove = new File(sigfile.getPath(), file);
-				remove.delete();
-			}
+			fileWriter.close();
 		}
 		pw.println("#Users");
 		for (User u : users) {
 			pw.print(u.toString());
-			ArrayList<Token> outOfDate = u.getTokens();
 			ArrayList<Token> tokens = u.getTokens();
 			for (Token token: tokens) {
 				sigfile = new File("files\\users\\" + u.toString());
@@ -178,9 +160,9 @@ public class Database {
 		return null;
 	}
 
-	public CateringFacility findCateringWithHash(byte[] infected) {
+	public CateringFacility findCateringWithHash(String infected) {
 		for (CateringFacility cf : facilities) {
-			for (Entry<Instant, byte[]> entry : cf.getHashes().entrySet()) {
+			for (Entry<String, String> entry : cf.getHashes().entrySet()) {
 				if (infected.equals(entry.getValue()))
 					return cf;
 			}
@@ -208,14 +190,14 @@ public class Database {
 	public void removeOutOfDateHashes(int expirationTime) {
 		Instant expirationDay = new Date(System.currentTimeMillis()).toInstant().minus(expirationTime, ChronoUnit.DAYS);
 		for (CateringFacility cf : facilities) {
-			ArrayList<Instant> outOfDate = new ArrayList<>();
-			for (Entry<Instant, byte[]> entry : cf.getHashes().entrySet()) {
-				if (entry.getKey().isBefore(expirationDay)) {
+			ArrayList<String> outOfDate = new ArrayList<>();
+			for (Entry<String, String> entry : cf.getHashes().entrySet()) {
+				if (Instant.parse(entry.getKey()).isBefore(expirationDay)) {
 					outOfDate.add(entry.getKey());
 				}
 			}
-			for (Instant instant : outOfDate) {
-				cf.getHashes().remove(instant);
+			for (String string : outOfDate) {
+				cf.getHashes().remove(string);
 			}
 		}
 	}

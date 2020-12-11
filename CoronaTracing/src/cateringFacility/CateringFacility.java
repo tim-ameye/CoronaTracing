@@ -26,6 +26,8 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
+
+import registrar.Hash;
 public class CateringFacility  extends UnicastRemoteObject implements CateringInterface {
 	private String businessNumber;
 	private String name;
@@ -33,6 +35,7 @@ public class CateringFacility  extends UnicastRemoteObject implements CateringIn
 	private String phoneNumber;
 	private Logger logger = Logger.getLogger("CateringFacility");
 	private KeyPair keyPair;
+	private Hash hash;
 	
 	private Map<Instant, byte[]> hashes;
 	private byte[] currentToken;
@@ -64,6 +67,10 @@ public class CateringFacility  extends UnicastRemoteObject implements CateringIn
 	
 	public PrivateKey getPrivate() {
 		return keyPair.getPrivate();
+	}
+	
+	public void setHash(Hash hash) {
+		this.hash = hash;
 	}
 	
 	

@@ -32,7 +32,7 @@ public class CateringFacility {
 	
 	private SecretKey secretKey;
 	
-	private Map<Instant, byte[]> hashMap;
+	private Hash hash;
 	
 	public CateringFacility(String businessNumber, String name, String adress, String phoneNumber) {
 		super();
@@ -40,7 +40,7 @@ public class CateringFacility {
 		this.name = name;
 		this.adress = adress;
 		this.phoneNumber = phoneNumber;
-		hashMap = new HashMap<>();
+		hash = new Hash();
 	}
 	
 	public void setLogger(Logger logger) {
@@ -98,8 +98,8 @@ public class CateringFacility {
 		Date date = new Date(System.currentTimeMillis());
 		Instant firstDay = date.toInstant().truncatedTo(ChronoUnit.DAYS);
 		//Check for what dates already a has has been created
-		for(Map.Entry<Instant,byte[]> entry : hashMap.entrySet()) {
-			if(entry.getKey().isAfter(firstDay)) overlap++;
+		for(Map.Entry<String, String> entry : hash.getPseudonyms().entrySet()) {
+			if(Instant.parse(entry.getKey()).isAfter(firstDay)) overlap++;
 		}
 		for(int i = overlap; i < period; i++) {
 			//Create the date for the hash
@@ -115,44 +115,36 @@ public class CateringFacility {
 			byte[] key = skf.generateSecret(spec).getEncoded();
 			//Create a pseudonym for that key with a cryptographic hash
 			String message = key.toString() + adress + dag;
-			byte[] nym = md.digest(message.getBytes());
-			//save the key in to a map with as key the date and value the hash
-			hashMap.put(inst, nym);
+			hash.genHash(message, md, inst);
 		}
 	}
 	
-	public byte[] nymToday() {
+	public String nymToday() {
 		Date date = new Date(System.currentTimeMillis());
 		Instant today = date.toInstant().truncatedTo(ChronoUnit.DAYS);
-		return hashMap.get(today);
+		return hash.get(today);
 	}
 	
-	public byte[] getHashToday() {
-		Date date = new Date(System.currentTimeMillis());
-		Instant instant = date.toInstant();
-		byte[] answer = hashMap.get(instant);
-		if(answer == null) logger.info("New hashes need to be created for catering facility: " + businessNumber);
-		return answer;
-	}
-	
-	public Map<Instant, byte[]> getHashFromToday(){
+	public Hash getHashFromToday(){
 		Date date = new Date(System.currentTimeMillis());
 		Instant instant = date.toInstant().truncatedTo(ChronoUnit.DAYS);
-		Map<Instant, byte[]> map = new HashMap<>();
-		for(Map.Entry<Instant,byte[]> entry : hashMap.entrySet()) {
-			if(entry.getKey().isAfter(instant) || entry.getKey().equals(instant)) map.put(entry.getKey(), entry.getValue());
+		Hash today = new Hash();
+		for(Map.Entry<String, String> entry : hash.getPseudonyms().entrySet()) {
+			if(Instant.parse(entry.getKey()).isAfter(instant) || Instant.parse(entry.getKey()).equals(instant)) {
+				today.put(entry.getKey(), entry.getValue());
+			}
 		}
-		if(map.isEmpty()) {
+		if(today.getPseudonyms().isEmpty()) {
 			logger.info("There are no more hashes created for catering facility: " + businessNumber);
 			return null;
 		}
-		return map;
+		return today;
 	}
 	
 	public String toString() {
 		String catering = businessNumber + "_" + name + "_" + adress + "_" + phoneNumber;
-		for(Map.Entry<Instant,byte[]> entry : hashMap.entrySet()) {
-			catering += "_" + entry.getKey().toString();
+		for(Map.Entry<String, String> entry : hash.getPseudonyms().entrySet()) {
+			catering += "_" + entry.getKey();
 		}
 		return catering;
 	}
@@ -161,11 +153,11 @@ public class CateringFacility {
 		return businessNumber + "_" + phoneNumber;
 	}
 	
-	public Map<Instant,byte[]> getHashes() {
-		return hashMap;
+	public Map<String, String> getHashes() {
+		return hash.getPseudonyms();
 	}
 	
-	public void addHashes(Instant instant, byte[] hash) {
-		hashMap.put(instant, hash);
+	public void addHashes(String day, String hash) {
+		this.hash.put(day, hash);
 	}
 }

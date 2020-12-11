@@ -14,7 +14,7 @@ public interface RegistrarInterface extends Remote {
 
 	public boolean registerCateringFacility(CateringInterface cf) throws RemoteException; 	//TODO CF-interface opvragen
 	public boolean loginCF(CateringInterface cf) throws RemoteException;
-	public Map<Instant, byte[]> getHashesCatering(String busNumber, String phoNumber, PublicKey publicKey) throws RemoteException;
+	public Hash getHashesCatering(String busNumber, String phoNumber, PublicKey publicKey) throws RemoteException;
 	
 	
 	public boolean registerVisitor(VisitorInterface v) throws RemoteException;				//TODO User-interface opvragen
@@ -23,6 +23,6 @@ public interface RegistrarInterface extends Remote {
 	
 	public void notifyVisitors(ArrayList<String> infectedTokens) throws RemoteException;
 	public void notifyFacility(ArrayList<byte[]> infectedHahses) throws RemoteException;
-	public List<byte[]> getCfHashesFromToday() throws RemoteException;
+	public TokenList getCfHashesFromToday() throws RemoteException;
 	public void InformUsers(List<String> notInformed);
 }

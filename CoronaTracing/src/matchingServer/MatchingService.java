@@ -1,14 +1,21 @@
 package matchingServer;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -22,6 +29,7 @@ import java.util.Map.Entry;
 import Visitor.Visit;
 import mixingProxy.Capsule;
 import registrar.RegistrarInterface;
+import registrar.TokenList;
 
 public class MatchingService extends UnicastRemoteObject implements MatchingServiceInterface {
 	/**
@@ -29,11 +37,12 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 	 */
 	private static final long serialVersionUID = 6919696315736336452L;
 
-	private List<byte[]> allTokens;
+	private List<String> allTokens;
 	private Map<String, List<Record>> matchingService; 	// key identifier catering facility and contains list of days
 	private List<String> criticalRecordsOfToday;		// contains string: hashedCFToken_instant
 	private Database database;
 	private String currentHashString;
+	private PrivateKey privateKey;
 	
 	
 	public MatchingService() throws RemoteException, FileNotFoundException {
@@ -43,6 +52,20 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 		database.readFile();
 		System.out.println("[DATABASE] Initialised!");
 
+		
+		KeyStore keyStore;
+		try {
+			keyStore = KeyStore.getInstance("JKS");
+			char[] password = "AVB6589klp".toCharArray();
+			FileInputStream fis = new FileInputStream("files\\keystore.jks");
+			keyStore.load(fis, password);
+			
+			privateKey = (PrivateKey) keyStore.getKey("matchingservice", password);
+		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException | UnrecoverableKeyException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		// TODO vraag aan tim: welke db wordt hier meegegeven, moet ik deze hier
 		// gebruiken!?
 	}
@@ -183,6 +206,7 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 		// to our cateringfacilityToken
 		for (int i = 0; i < allTokens.size(); i++) {
 			// hash the current token with the Ri
+			//TODO moet niet meer in een string omgezet worden!!
 			String currentToken = Base64.getEncoder().encodeToString(allTokens.get(i));
 			String currentTokenString = Integer.toString(randomNumber) + currentToken;
 
@@ -226,8 +250,9 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 	public void getNewTokens() throws RemoteException, NotBoundException {
 		Registry myRegistry = LocateRegistry.getRegistry("localhost", 55545);
 		RegistrarInterface registrar = (RegistrarInterface) myRegistry.lookup("Registrar");
-
-		allTokens.addAll(registrar.getCfHashesFromToday());
+		TokenList ans = registrar.getCfHashesFromToday();
+		TokenList list = ans.decryt(privateKey);
+		allTokens.addAll(list.getTokens());
 		
 	}
 

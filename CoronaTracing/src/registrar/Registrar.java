@@ -55,6 +55,7 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 	private Certificate certificate;
 	private KeyFactory keyFactory;
 	private KeyStore keyStore;
+	private PublicKey matchingServicePubKey;
 	private final static String path = "files\\keystore.jks";
 
 	protected Registrar(Database db) throws RemoteException {
@@ -79,6 +80,7 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 			privateKey = (PrivateKey) keyStore.getKey("registrar", password);
 
 			certificate = keyStore.getCertificate("registrar");
+			matchingServicePubKey = keyStore.getCertificate("matchingservice").getPublicKey();
 			signature.initSign(privateKey);
 
 		} catch (NoSuchAlgorithmException e) {
@@ -147,43 +149,20 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 	}
 
 	@Override
-	public Map<Instant, byte[]> getHashesCatering(String busNumber, String phoNumber, PublicKey publicKey)
+	public Hash getHashesCatering(String busNumber, String phoNumber, PublicKey publicKey)
 			throws RemoteException {
 		CateringFacility cf = db.findCateringFacility(busNumber, phoNumber);
-		Map<Instant, byte[]> encodedHashes = new HashMap<>();
 		SecretKey sessionKey = keyGenerator.generateKey();
-		Cipher encryptText;
+		Hash hash = cf.getHashFromToday();
 		try {
-			encryptText = Cipher.getInstance("AES");
-			encryptText.init(Cipher.ENCRYPT_MODE, sessionKey);
-			Cipher encryptSession = Cipher.getInstance("RSA");
-			encryptSession.init(Cipher.ENCRYPT_MODE, publicKey);
-			byte[] encryptedSessionKey = encryptSession.doFinal(sessionKey.getEncoded());
-			encodedHashes.put(Instant.EPOCH, encryptedSessionKey);
-			if (cf.getHashFromToday() == null) {
+			if(hash == null) {
 				cf.generateHashes(10, secretKeyFactory, secureRandom, messageDigest);
+				hash = cf.getHashFromToday();
 			}
-			for (Map.Entry<Instant, byte[]> entry : cf.getHashFromToday().entrySet()) {
-				byte[] encoded = encryptText.doFinal(entry.getValue());
-				encodedHashes.put(entry.getKey(), encoded);
-			}
-		} catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvalidKeyException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalBlockSizeException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (BadPaddingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvalidKeySpecException e) {
-			// TODO Auto-generated catch block
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
+		Hash encodedHashes = hash.encrypt(sessionKey, publicKey);
 		return encodedHashes;
 	}
 
@@ -271,23 +250,25 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 	}
 
 	@Override
-	public List<byte[]> getCfHashesFromToday() {
-		List<byte[]> pseudonymen = new ArrayList<>();
+	public TokenList getCfHashesFromToday() {
+		TokenList tokenList = new TokenList();
 		for(CateringFacility cf: db.getCateringFacilities()) {
-			byte[] hash = cf.getHashToday();
-			if(hash == null) {
+			String pseudo = cf.nymToday();
+			if(pseudo == null) {
 				try {
 					cf.generateHashes(10, secretKeyFactory, secureRandom, messageDigest);
 				} catch (InvalidKeySpecException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				hash = cf.getHashToday();
+				pseudo = cf.nymToday();
 			}
-			pseudonymen.add(hash);
+			tokenList.add(pseudo);
 		}
-		Collections.shuffle(pseudonymen);
-		return pseudonymen;
+		tokenList.shuffle();
+		SecretKey sessionKey = keyGenerator.generateKey();
+		TokenList encrypted = tokenList.encrypt(sessionKey, matchingServicePubKey);
+		return encrypted;
 	}
 
 	@Override

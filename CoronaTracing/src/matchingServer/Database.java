@@ -60,9 +60,20 @@ public class Database {
 
 				Scanner fsc = new Scanner("MatchingService\\"+cfToken+"\\" + timeIntervals[i]);
 				List<String> userTokens = new ArrayList<>();
+				List<Boolean> informed = new ArrayList<>();
 				
+				// what is de first line?
+				String firstLine = fsc.nextLine();
+				boolean critical = false;
+				if (firstLine.equals("CRITICAL")) {
+					critical = true;
+				}
 				while (fsc.hasNextLine()) {
-					userTokens.add(fsc.nextLine());
+					String current = fsc.nextLine();
+					String[] splitLine = current.split("_");
+					userTokens.add(splitLine[0]);
+					informed.add(Boolean.parseBoolean(splitLine[1]));
+					
 				}
 				// Alle waarde uit de timeinterval[i] van cf met cfToken gehaald, nu deze info in onze map steken!
 				List<Record> currentRecords = matchingService.get(cfToken);
@@ -71,6 +82,12 @@ public class Database {
 				for (int j = 0; j < userTokens.size(); j++) {
 					// adding all the usertokens from the file
 					r.addToken(userTokens.get(j));
+					r.setInformed(informed);
+					if (critical) {
+						r.setCritical(true);
+					}else {
+						r.setCritical(false);
+					}
 				}
 				
 				
@@ -101,6 +118,15 @@ public class Database {
 			for (Record r : records) {
 				//TODO not sure if printwriter will actually make the file itself, i hope so, but if there is an error here, yeah..
 				fpw = new PrintWriter("MatchingService\\" + cfToken + "\\" + r.getTime());
+				//first line is the indicator for critical or not
+				String firstLine = "";
+				if (r.isCritical()) {
+					firstLine = "CRITICAL";
+				}else {
+					firstLine = "safe";
+				}
+				fpw.println(firstLine);
+				
 				fpw.println(getTokens(r));	// in the file set all the tokens
 				pw.print("_" + r.getTime());	//In the database file, write all the keys aka different timeInstances
 				
@@ -118,10 +144,11 @@ public class Database {
 	private String getTokens(Record r) {
 		String tokensString = "";
 		List<String> userTokens = r.getTokens();
+		List<Boolean> informed = r.getInformed();
 		
-		tokensString = userTokens.get(0);
+		tokensString = userTokens.get(0) + "_" + informed.get(0);
 		for (int i = 1; i < userTokens.size(); i++) {
-			tokensString = tokensString + '\n' + userTokens.get(i);
+			tokensString = tokensString + '\n' + userTokens.get(i) + "_" +informed.get(i);
 		}
 		return tokensString;
 	}

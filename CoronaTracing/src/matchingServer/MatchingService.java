@@ -161,6 +161,7 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 				System.out.println("[MatchingService] The token from the visit was invalid! Problem");
 			}
 		}
+		database.printFile();
 
 	}
 

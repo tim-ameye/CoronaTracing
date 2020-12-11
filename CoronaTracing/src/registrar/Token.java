@@ -1,6 +1,7 @@
 package registrar;
 
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
@@ -82,7 +83,7 @@ public class Token implements Serializable{
 		} catch (SignatureException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		} 
 	}
 
 	public byte[] concat(byte[] a, byte[] b) {
@@ -155,6 +156,7 @@ public class Token implements Serializable{
 		String[] result = new String[2];
 		result[0] = signedTokens.get(itterator);
 		result[1] = unsignedTokens.get(itterator);
+		itterator++;
 		return result;
 	}
 }

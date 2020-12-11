@@ -1,4 +1,2 @@
 #Records
-CateringFacilityToken_AllTimeIntervalsThatItHas
-CateringFacility2Token_AllTimeIntervalsThatItHas
 #End

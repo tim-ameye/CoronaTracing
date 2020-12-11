@@ -22,7 +22,9 @@ import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -265,5 +267,25 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 	public void notifyFacility(ArrayList<byte[]> infectedHahses) throws RemoteException {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public List<byte[]> getCfHashesFromToday() {
+		List<byte[]> pseudonymen = new ArrayList<>();
+		for(CateringFacility cf: db.getCateringFacilities()) {
+			byte[] hash = cf.getHashToday();
+			if(hash == null) {
+				try {
+					cf.generateHashes(10, secretKeyFactory, secureRandom, messageDigest);
+				} catch (InvalidKeySpecException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				hash = cf.getHashToday();
+			}
+			pseudonymen.add(hash);
+		}
+		Collections.shuffle(pseudonymen);
+		return pseudonymen;
 	}
 }

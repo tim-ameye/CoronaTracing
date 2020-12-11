@@ -4,39 +4,50 @@ import java.time.Instant;
 
 public class Visit {
 	private int randomNumber;
-	private String cateringFacility;
+	private String cateringFacilityToken;
 	private String userTokenSigned;
 	private String userTokenUnsigned;
 	private String businessNumber;
 	private Instant beginTime;
 	private Instant endTime;
+	private Instant instant;
 	
 	public Visit() {
 		this.randomNumber = 0;
-		this.cateringFacility = null;
+		this.cateringFacilityToken = null;
 	}
 	
-	public Visit(int randomNumber, String signed, String usigned, String cateringFacility) {
+	public Visit(int randomNumber, String signed, String usigned, String cateringFacility, Instant instant) {
 		this.randomNumber = randomNumber;
-		this.cateringFacility = cateringFacility;
+		this.cateringFacilityToken = cateringFacility;
 		this.userTokenSigned = signed;
 		this.userTokenUnsigned = usigned;
+		this.instant = instant;
 	}
 
 	public int getRandomNumber() {
 		return randomNumber;
 	}
 
+	public Instant getInstant() {
+		return instant;
+	}
+
+	public void setInstant(Instant instant) {
+		this.instant = instant;
+	}
+
+
 	public void setRandomNumber(int randomNumber) {
 		this.randomNumber = randomNumber;
 	}
 
 	public String getCateringFacility() {
-		return cateringFacility;
+		return cateringFacilityToken;
 	}
 
 	public void setCateringFacility(String cateringFacility) {
-		this.cateringFacility = cateringFacility;
+		this.cateringFacilityToken = cateringFacility;
 	}
 
 	public String getUserTokenSigned() {

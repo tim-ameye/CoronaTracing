@@ -67,6 +67,14 @@ public class Capsule implements Serializable{
 		this.userTokenUnsigned = userTokenUnsigned;
 	}
 	
+	public byte[] getSignedBytes() {
+		return Base64.getDecoder().decode(userTokenSigned);
+	} 
+	
+	public byte[] getUnsignedBytes() {
+		return Base64.getDecoder().decode(userTokenUnsigned);
+	}
+	
 	public Capsule encrypt(SecretKey sessionKey, PublicKey pk) {
 		Capsule encrypted = new Capsule();
 		try {

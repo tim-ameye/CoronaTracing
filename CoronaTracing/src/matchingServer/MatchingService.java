@@ -28,8 +28,9 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 	
 	public MatchingService() throws RemoteException, FileNotFoundException{
 		matchingService = new HashMap<>();
-		Database database = new Database("\\MachingService\\Database.txt");
+		Database database = new Database("MatchingService\\Database.txt");
 		database.readFile();
+		System.out.println("[DATABASE] Initialised!");
 
 	//TODO vraag aan tim: welke db wordt hier meegegeven, moet ik deze hier gebruiken!?
 	}
@@ -111,7 +112,12 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 		matchingService = database.getMatchingService();
 		
 		for (Entry<String, List<Record>> entry : matchingService.entrySet() ) {
-			entry.getValue();
+			// get all the record for a certain cf
+			List<Record> recordsOfCF = entry.getValue();
+			
+			for (Record record : recordsOfCF) {
+				
+			}
 			
 		}
 		

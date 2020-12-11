@@ -4,6 +4,7 @@ import java.rmi.RemoteException;
 import java.security.PublicKey;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import Visitor.VisitorInterface;
@@ -22,4 +23,5 @@ public interface RegistrarInterface extends Remote {
 	
 	public void notifyVisitors(ArrayList<String> infectedTokens) throws RemoteException;
 	public void notifyFacility(ArrayList<byte[]> infectedHahses) throws RemoteException;
+	public List<byte[]> getCfHashesFromToday();
 }

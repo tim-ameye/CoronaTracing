@@ -18,7 +18,7 @@ public class Server {
 		Scanner sc = new Scanner(System.in);
 		Registry registry = null;
 		
-		String dbFile = "\\MachingService\\Database.txt";
+		String dbFile = "MachingService\\Database.txt";
 		
 		
 		String input = "";

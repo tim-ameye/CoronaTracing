@@ -49,7 +49,7 @@ public class Database {
 			String[] info = line.split("_");
 			//TODO controleren of deze 2 waarden goed ingelezen worden!
 			String cfToken = info[0];
-			String[] timeIntervals = Arrays.copyOfRange(info, 1, info.length-2);
+			String[] timeIntervals = Arrays.copyOfRange(info, 1, info.length-1);
 			
 			// initiate our map before filling it! 
 			List<Record> records = new ArrayList<>();

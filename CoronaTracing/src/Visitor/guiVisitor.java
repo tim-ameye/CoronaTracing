@@ -9,6 +9,8 @@ import java.awt.CardLayout;
 import javax.swing.JLabel;
 import java.awt.Font;
 import javax.swing.SwingConstants;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import mixingProxy.Capsule;
 
@@ -118,15 +120,76 @@ public class guiVisitor {
 		frame.getContentPane().add(panelVisitorLogs, "name_48490272459100");
 		panelVisitorLogs.setLayout(null);
 		
-		//TODO
-		JList<Visit> list = new JList<>();
-		list.setBounds(10, 11, 364, 439);
-		panelVisitorLogs.add(list);
-		DefaultListModel<Visit> dlm = new DefaultListModel<>();
+		JLabel lblNewLabel_1_1 = new JLabel("Log information");
+		lblNewLabel_1_1.setHorizontalAlignment(SwingConstants.CENTER);
+		lblNewLabel_1_1.setFont(new Font("Verdana", Font.BOLD, 16));
+		lblNewLabel_1_1.setBounds(0, 200, 384, 30);
+		panelVisitorLogs.add(lblNewLabel_1_1);
+		
+		JLabel lblNewLabel_1_1_1 = new JLabel("Time of visit:");
+		lblNewLabel_1_1_1.setHorizontalAlignment(SwingConstants.CENTER);
+		lblNewLabel_1_1_1.setFont(new Font("Verdana", Font.PLAIN, 16));
+		lblNewLabel_1_1_1.setBounds(0, 230, 384, 30);
+		panelVisitorLogs.add(lblNewLabel_1_1_1);
+		
+		JLabel lblNewLabel_1_1_1_1 = new JLabel("Catering facility:");
+		lblNewLabel_1_1_1_1.setHorizontalAlignment(SwingConstants.CENTER);
+		lblNewLabel_1_1_1_1.setFont(new Font("Verdana", Font.PLAIN, 16));
+		lblNewLabel_1_1_1_1.setBounds(0, 330, 384, 30);
+		panelVisitorLogs.add(lblNewLabel_1_1_1_1);
+		
+		JLabel label_beginTimeOfVisit = new JLabel(" ");
+		label_beginTimeOfVisit.setHorizontalAlignment(SwingConstants.CENTER);
+		label_beginTimeOfVisit.setFont(new Font("Verdana", Font.PLAIN, 16));
+		label_beginTimeOfVisit.setBounds(0, 260, 384, 30);
+		panelVisitorLogs.add(label_beginTimeOfVisit);
+		
+		JLabel label_cf = new JLabel(" ");
+		label_cf.setHorizontalAlignment(SwingConstants.CENTER);
+		label_cf.setFont(new Font("Verdana", Font.PLAIN, 16));
+		label_cf.setBounds(0, 360, 384, 30);
+		panelVisitorLogs.add(label_cf);
+		
+		JLabel label_endTimeOfVisit = new JLabel(" ");
+		label_endTimeOfVisit.setHorizontalAlignment(SwingConstants.CENTER);
+		label_endTimeOfVisit.setFont(new Font("Verdana", Font.PLAIN, 16));
+		label_endTimeOfVisit.setBounds(0, 290, 384, 30);
+		/*DefaultListModel<Visit> dlm = new DefaultListModel<>();
 		for(Visit visit : visitorClient.getVisits()) {
 			dlm.addElement(visit);
 		}
-		list.setModel(dlm);
+		list.setModel(dlm);*/
+		
+		//TODO
+		ArrayList<Visit> visits = visitorClient.getVisits();
+		JList list = new JList(visits.toArray());
+		list.addListSelectionListener(
+			new ListSelectionListener() {
+				@Override
+				public void valueChanged(ListSelectionEvent arg0) {
+					Visit visit = (Visit) list.getSelectedValue();
+					label_beginTimeOfVisit.setText(visit.getBeginTime().toString());
+					label_endTimeOfVisit.setText(visit.getEndTime().toString());
+					label_cf.setText(visit.getCateringFacility());
+						
+				}
+			});
+		list.setBounds(10, 10, 364, 180);
+		panelVisitorLogs.add(list);
+				
+		JButton btnBack = new JButton("Back");
+		btnBack.setFont(new Font("Verdana", Font.PLAIN, 20));
+		btnBack.setBounds(90, 400, 200, 50);
+		panelVisitorLogs.add(btnBack);
+		
+		
+		panelVisitorLogs.add(label_endTimeOfVisit);
+		btnBack.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				panelScan.setVisible(true);
+				panelVisitorLogs.setVisible(false);
+			}
+		});
 		
 		
 		panelSucces.setLayout(null);

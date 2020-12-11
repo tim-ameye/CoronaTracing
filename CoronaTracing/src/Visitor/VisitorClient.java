@@ -51,6 +51,20 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 		registerServer = (RegistrarInterface) myRegistry.lookup("Registrar"); 
 		mixingProxyServer = (MixingProxyInterface) mixingProxyRegistry.lookup("MixingProxy");
 		this.visitor = null;
+		//voor testen
+		Visit visit1 = new Visit(13,"mj","cmlkjmku","YAY");
+		Date date = new Date(System.currentTimeMillis());
+		Instant day = roundTime(date);
+		visit1.setBeginTime(day);
+		visit1.setBusinessNumber("12345");
+		visit1.setEndTime(day);
+		Visit visit2 = new Visit(19,"kmjmjmjt","mkjmkljmku","joj");
+		visit2.setBeginTime(day);
+		visit2.setEndTime(day);
+		visit2.setBusinessNumber("6789");
+		
+		visits.add(visit1);
+		visits.add(visit2);
 	}
 	
 	public Visitor getVisitor() throws RemoteException {
@@ -179,6 +193,10 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 	public void addVisit() {//TODO controleren
 		String[] arguments = qrCode.split("_");
 		Visit visit = new Visit(Integer.parseInt(arguments[0]), currentToken[0], currentToken[1], arguments[2]); //randomnummmber, unique identifier, hash catering
+		visit.setBusinessNumber(arguments[1]);
+		Date date = new Date(System.currentTimeMillis());
+		Instant day = roundTime(date);
+		visit.setBeginTime(day);
 		visits.add(visit);
 	}
 

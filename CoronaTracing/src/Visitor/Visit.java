@@ -1,10 +1,15 @@
 package Visitor;
 
+import java.time.Instant;
+
 public class Visit {
 	private int randomNumber;
 	private String cateringFacility;
 	private String userTokenSigned;
 	private String userTokenUnsigned;
+	private String businessNumber;
+	private Instant beginTime;
+	private Instant endTime;
 	
 	public Visit() {
 		this.randomNumber = 0;
@@ -49,4 +54,33 @@ public class Visit {
 	public void setUserTokenUnsigned(String userTokenUnsigned) {
 		this.userTokenUnsigned = userTokenUnsigned;
 	}
+	
+	public String getBusinessNumber() {
+		return businessNumber;
+	}
+
+	public void setBusinessNumber(String businessNumber) {
+		this.businessNumber = businessNumber;
+	}
+
+	public Instant getBeginTime() {
+		return beginTime;
+	}
+
+	public void setBeginTime(Instant beginTime) {
+		this.beginTime = beginTime;
+	}
+
+	public Instant getEndTime() {
+		return endTime;
+	}
+
+	public void setEndTime(Instant endTime) {
+		this.endTime = endTime;
+	}
+
+	public String toString() {
+		return "Visit "+randomNumber+" Business number: "+this.businessNumber;
+	}
+
 }

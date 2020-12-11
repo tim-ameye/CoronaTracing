@@ -266,4 +266,10 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 		// TODO Auto-generated method stub
 		
 	}
+
+	@Override
+	public void getCfHashesFromToday() {
+		// TODO tim fix plzz
+		
+	}
 }

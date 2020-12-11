@@ -1,6 +1,7 @@
 package matchingServer;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.time.Instant;
@@ -21,15 +22,14 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 
 	
 	
-	private Map<String, List<Record> > cateringFacilities;		// key identifier catering facility and contains list of days 
+	private Map<String, List<Record> > matchingService;		// key identifier catering facility and contains list of days 
 	Database database;
 	
 	public MatchingService(Database db) throws RemoteException{
-		cateringFacilities = new HashMap<>();
-	//	Database database = new Database(dbFile)
-	//TODO vraag aan tim: te fuk moet ik hier met die db werken !?
+		matchingService = new HashMap<>();
+	//TODO vraag aan tim: welke db wordt hier meegegeven, moet ik deze hier gebruiken!?
 	}
-	public void RecieveCapsule(Capsule capsule) {
+	public void RecieveCapsule(Capsule capsule) throws FileNotFoundException {
 		// disect the capsule and get it in the format of
 		// a record and add it to the records array of which we 
 		// also have a database
@@ -48,17 +48,20 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 		String[] spittedQrToken = qrToken.split("_");
 		
 		String cfToken = spittedQrToken[3];
-		//TODO before using the cateringFacilities map we should first synchronise it with our files by running a read command :p
+		//before using the cateringFacilities map we should first synchronise it with our files by running a read command :p
 		File dbFile = new File("MatchingService\\"+cfToken);
 		if (!dbFile.exists()) {
 			dbFile.mkdirs();
 		}
-		
+		Database database = new Database("\\MachingService\\Database.txt");
+		// Synchronise our 
+		database.readFile();
+		matchingService = database.getMatchingService();
 		
 		// see if this cateringFacility is already in our matchingService database
-		if (cateringFacilities.containsKey(cfToken)) {
+		if (matchingService.containsKey(cfToken)) {
 			// iterate over it's records and search for matching time interval
-			List<Record> records = cateringFacilities.get(cfToken);
+			List<Record> records = matchingService.get(cfToken);
 		
 			boolean match = false;
 			for (Record r : records) {
@@ -84,11 +87,12 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 			temp.addToken(userToken);
 			records.add(temp);
 			
-			cateringFacilities.put(cfToken, records);
+			matchingService.put(cfToken, records);
 			
 		}
-		//TODO normally is now the cateringFacilities Map updated and so we should reprint it so it's kept up to date
-		
+		//normally is now the cateringFacilities Map updated and so we should reprint it so it's kept up to date
+		database.setMatchingService(matchingService);
+		database.printFile();
 	}
 	
 }

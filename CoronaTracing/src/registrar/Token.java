@@ -24,7 +24,7 @@ public class Token implements Serializable{
 	
 	private ArrayList<String> unsignedTokens;
 	private ArrayList<String> signedTokens;
-	private Instant day;
+	private String day;
 	private String sessionKey;
 	private int itterator;
 
@@ -51,11 +51,11 @@ public class Token implements Serializable{
 	}
 
 	public Instant getDay() {
-		return day;
+		return Instant.parse(day);
 	}
 
 	public void setDay(Instant day) {
-		this.day = day;
+		this.day = day.toString();
 	}
 
 	public String getSessionKey() {
@@ -67,7 +67,7 @@ public class Token implements Serializable{
 	}
 
 	public void genToken(SecureRandom random, Signature rsa, Instant day) {
-		this.day = day;
+		this.day = day.toString();
 		try {
 			for (int i = 0; i < 48; i++) {
 				byte[] token = new byte[64];
@@ -102,6 +102,8 @@ public class Token implements Serializable{
 		try {
 			Cipher encryptText = Cipher.getInstance("AES");
 			encryptText.init(Cipher.ENCRYPT_MODE, sessionKey);
+			byte[] date = encryptText.doFinal(day.getBytes());
+			encrypted.day = Base64.getEncoder().encodeToString(date);
 			for(int i = 0; i < signedTokens.size(); i++) {
 				byte[] signed = encryptText.doFinal(Base64.getDecoder().decode(signedTokens.get(i)));
 				byte[] unsigned = encryptText.doFinal(Base64.getDecoder().decode(unsignedTokens.get(i)));
@@ -127,6 +129,8 @@ public class Token implements Serializable{
 			SecretKey sessionKey = new SecretKeySpec(cipherKey.doFinal(encryptedSessionKey), "AES");
 			Cipher cipherToken = Cipher.getInstance("AES");
 			cipherToken.init(Cipher.DECRYPT_MODE, sessionKey);
+			byte[] date = cipherToken.doFinal(Base64.getDecoder().decode(day));
+			decrypted.day = new String(date);
 			for(int i = 0; i < signedTokens.size(); i++) {
 				byte[] signed = cipherToken.doFinal(Base64.getDecoder().decode(signedTokens.get(i)));
 				byte[] unsigned = cipherToken.doFinal(Base64.getDecoder().decode(unsignedTokens.get(i)));

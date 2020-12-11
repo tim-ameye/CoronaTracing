@@ -65,10 +65,11 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 			this.messageDigest = MessageDigest.getInstance("SHA-256");
 			this.secretKeyFactory = SecretKeyFactory.getInstance("pbkdf2withhmacsha256");
 			this.keyGenerator = KeyGenerator.getInstance("AES");
+			keyGenerator.init(256, secureRandom);
 			this.signature = Signature.getInstance("SHA512withRSA");
 			this.keyFactory = KeyFactory.getInstance("RSA");
 
-			keyGenerator.init(256, secureRandom);
+			
 
 			this.keyStore = KeyStore.getInstance("JKS");
 			char[] password = "AVB6589klp".toCharArray();

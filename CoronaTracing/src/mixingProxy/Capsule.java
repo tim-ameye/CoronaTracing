@@ -80,7 +80,7 @@ public class Capsule implements Serializable{
 		try {
 			Cipher encryptText = Cipher.getInstance("AES");
 			encryptText.init(Cipher.ENCRYPT_MODE, sessionKey);
-			byte[] time = encryptText.doFinal(Base64.getDecoder().decode(currentTimeInterval.toString()));
+			byte[] time = encryptText.doFinal(currentTimeInterval.toString().getBytes());
 			encrypted.currentTimeInterval = Base64.getEncoder().encodeToString(time);
 			byte[] hash = encryptText.doFinal(Base64.getDecoder().decode(qrToken));
 			encrypted.qrToken = Base64.getEncoder().encodeToString(hash);
@@ -108,7 +108,7 @@ public class Capsule implements Serializable{
 			Cipher cipherToken = Cipher.getInstance("AES");
 			cipherToken.init(Cipher.DECRYPT_MODE, sessionKey);
 			byte[] time = cipherToken.doFinal(Base64.getDecoder().decode(currentTimeInterval.toString()));
-			decrypted.currentTimeInterval = Base64.getEncoder().encodeToString(time);
+			decrypted.currentTimeInterval = new String(time);
 			byte[] hash = cipherToken.doFinal(Base64.getDecoder().decode(qrToken));
 			decrypted.qrToken = Base64.getEncoder().encodeToString(hash);
 			byte[] signed = cipherToken.doFinal(Base64.getDecoder().decode(userTokenSigned));

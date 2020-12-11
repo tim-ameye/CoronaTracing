@@ -34,6 +34,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import mixingProxy.Capsule;
 import mixingProxy.MixingProxyInterface;
+import mixingProxy.Response;
 import registrar.RegistrarInterface;
 import registrar.Token;
 
@@ -159,7 +160,8 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 		try {
 			KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
 			SecretKey sessionKey = keyGenerator.generateKey();
-			capsule = new Capsule(day, currentToken[0], currentToken[1], arguments[2]).encrypt(sessionKey, mixingPubKey);
+			capsule = new Capsule(day, currentToken[0], currentToken[1], arguments[2]);
+			capsule = capsule.encrypt(sessionKey, mixingPubKey);
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -169,11 +171,8 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 
 	public boolean sendCapsule(Capsule capsule) {
 		try {
-			String responseEncrypted = mixingProxyServer.registerVisit(capsule, visitor.getPublicKey());
-			Cipher decrypt = Cipher.getInstance("RSA");
-			decrypt.init(Cipher.DECRYPT_MODE, visitor.getPrivateKey());
-			byte[] responseByte = decrypt.doFinal(Base64.getDecoder().decode(responseEncrypted));
-			String response = new String(responseByte);
+			Response responseEncrypted = mixingProxyServer.registerVisit(capsule, visitor.getPublicKey());
+			String response = responseEncrypted.decrypt(visitor.getPrivateKey()).getMessage();
 			System.out.println(response);
 			if (response.equals("Accepted"))
 				return true;

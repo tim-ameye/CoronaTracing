@@ -8,11 +8,14 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Scanner;
 import java.util.logging.Level;
+
 
 import registrar.Registrar;
 
@@ -22,21 +25,30 @@ public class Server {
 		
 		Scanner sc = new Scanner(System.in);
 		Registry registry = null;
+		Date date = new Date(System.currentTimeMillis());
+		Instant startDay = date.toInstant().truncatedTo(ChronoUnit.DAYS);
+
+		
+		
 		
 		String dbFile = "MachingService\\Database.txt";
 		MatchingService matchingService = new MatchingService();
 		
 		String input = "";
-		Date date = new Date(System.currentTimeMillis());
-		Instant startDay = date.toInstant().truncatedTo(ChronoUnit.DAYS);
 		
 		while(!input.equals("Stop")) {
 			Instant currentDay = date.toInstant().truncatedTo(ChronoUnit.DAYS);
+			
 			if (startDay.isBefore(currentDay)) {
 				System.out.println("[MatchingService] We have begun a new day, ask the registrar for tokens");
 				
 				matchingService.getNewTokens();
 			}
+			
+			if (date.toInstant().truncatedTo(ChronoUnit.DAYS).plus(12,ChronoUnit.HOURS) == date.toInstant().truncatedTo(ChronoUnit.HOURS)) {
+				matchingService.setCriticalRecordsOfToday(new ArrayList<>());
+			}
+			
 			if(input.equals("Start")) {
 				System.out.println("[MatchingService] The database has been initialised.");
 				

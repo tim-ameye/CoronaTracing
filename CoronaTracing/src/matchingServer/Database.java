@@ -24,10 +24,10 @@ public class Database {
 	private Logger logger;
 	private Map<String, List<Record> > matchingService;		// key identifier catering facility and contains list of days 
 
-	//TODO
+	//
 	// we're going to work with the same map from matchingService but that shouldn't matter too much
 	// We should have for each entry in the map a corresponding file with as name the key
-	// and than maybe another abstraction layer for the day, but not sure if that's really necessary. //TODO ask tim x
+	// and than maybe another abstraction layer for the day, but not sure if that's really necessary.
 	// and we should than always have a file for eacht time instance which contains all of the user tokens
 	// 
 	public Database(String dbFileName) {
@@ -156,6 +156,7 @@ public class Database {
 	public Map<String, List<Record>> getMatchingService() {
 		return matchingService;
 	}
+
 	public void setMatchingService(Map<String, List<Record>> matchingService) {
 		this.matchingService = matchingService;
 	}

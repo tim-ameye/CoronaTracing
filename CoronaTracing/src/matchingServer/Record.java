@@ -7,7 +7,7 @@ import java.util.List;
 public class Record {
 
 	private String cfHash; 				// hash from the cateringfacility
-	private boolean critical = false;
+	private boolean critical;
 	private Instant time;
 	private ArrayList<String> tokens;	// the users at that time in the cf
 	private List<Boolean> informed;
@@ -17,6 +17,7 @@ public class Record {
 		this.time = time;
 		this.tokens = new ArrayList<>();
 		this.informed = new ArrayList<>();
+		this.critical = false;
 	}
 
 	public boolean isCritical() {

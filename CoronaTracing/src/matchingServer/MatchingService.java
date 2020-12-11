@@ -29,10 +29,13 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 	 */
 	private static final long serialVersionUID = 6919696315736336452L;
 
-	List<byte[]> allTokens;
-	private Map<String, List<Record>> matchingService; // key identifier catering facility and contains list of days
-	Database database;
-
+	private List<byte[]> allTokens;
+	private Map<String, List<Record>> matchingService; 	// key identifier catering facility and contains list of days
+	private List<String> criticalRecordsOfToday;		// contains string: hashedCFToken_instant
+	private Database database;
+	private String currentHashString;
+	
+	
 	public MatchingService() throws RemoteException, FileNotFoundException {
 		matchingService = new HashMap<>();
 		allTokens = new ArrayList<>();
@@ -116,8 +119,7 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 
 	}
 
-	public void RecieveInfectedUserToken(List<Visit> infectedVisits)
-			throws FileNotFoundException, NoSuchAlgorithmException {
+	public void RecieveInfectedUserToken(List<Visit> infectedVisits) throws FileNotFoundException, NoSuchAlgorithmException {
 
 		for (int i = 0; i < infectedVisits.size(); i++) {
 			Visit visit = infectedVisits.get(i);
@@ -150,6 +152,16 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 								record.getInformed().set(j, true);
 							}
 						}
+						// adding this record to the is critical
+						String criticalRecord = currentHashString + "_" +visit.getInstant().toString();
+						criticalRecordsOfToday.add(criticalRecord);
+						
+						// Starting countdown timer that will check if users are informed or not.
+						System.out.println("start countdown");
+						new Countdown(1296000, this, visit.getCateringFacilityToken(), visit.getInstant());	
+						//give record so we can see how the record is doing 
+						System.out.println("passed it");
+						
 					} else {
 						System.out.println(
 								"[Matchingservice] No records for this catering facility with the corresponding time, strange...");
@@ -165,7 +177,6 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 
 	}
 
-
 	private boolean checkValid(String cateringFacilityToken, int randomNumber) throws NoSuchAlgorithmException {
 		MessageDigest md = MessageDigest.getInstance("SHA-256");
 		// Hash all items in our list with this random integer and check if it's equal
@@ -176,7 +187,7 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 			String currentTokenString = Integer.toString(randomNumber) + currentToken;
 
 			byte[] nym = md.digest(currentTokenString.getBytes());
-			String currentHashString = Base64.getEncoder().encodeToString(nym);
+			 currentHashString = Base64.getEncoder().encodeToString(nym);
 
 			if (currentHashString.equals(cateringFacilityToken)) {
 				// our hashes match so it's valid!
@@ -198,6 +209,14 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 
 	public Database getDatabase() {
 		return database;
+	}
+
+	public List<String> getCriticalRecordsOfToday() {
+		return criticalRecordsOfToday;
+	}
+
+	public void setCriticalRecordsOfToday(List<String> criticalRecordsOfToday) {
+		this.criticalRecordsOfToday = criticalRecordsOfToday;
 	}
 
 	public void setDatabase(Database database) {

@@ -1,5 +1,6 @@
 package matchingServer;
 import java.awt.Toolkit;
+import java.io.FileNotFoundException;
 import java.time.Instant;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -31,14 +32,19 @@ public class Countdown {
 class RemindTask extends TimerTask {
     public void run() {
     		
-    	StartContactingRegistrar(mf, cfToken, instant);
+    	try {
+			StartContactingRegistrar(mf, cfToken, instant);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     	
     	//timer.cancel(); //Not necessary because we call System.exit
       System.exit(0); //Stops the AWT thread (and everything else)
     }
   }
 
-	public void StartContactingRegistrar(MatchingService mf, String cfToken, Instant instant) {
-		//TODO
+	public void StartContactingRegistrar(MatchingService mf, String cfToken, Instant instant) throws FileNotFoundException {
+		mf.contactUsers( cfToken,  instant);
 	}
 }

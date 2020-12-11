@@ -17,9 +17,8 @@ import mixingProxy.Capsule;
 
 public interface MatchingServiceInterface extends Remote{
 	public List<String> getCriticalRecordsOfToday() throws RemoteException;
-	public void RecieveCapsule(Capsule capsule) throws FileNotFoundException, RemoteException;
 	public void RecieveInfectedUserToken(List<Visit> infectedVisits) throws FileNotFoundException, NoSuchAlgorithmException, RemoteException;
 
 
-	public void sendCapsule(Capsule capsule) throws RemoteException;
+	public void sendCapsule(Capsule capsule) throws FileNotFoundException,  RemoteException;
 }

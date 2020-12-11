@@ -47,7 +47,7 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 		// gebruiken!?
 	}
 
-	public void RecieveCapsule(Capsule capsule) throws FileNotFoundException {
+	public void sendCapsule(Capsule capsule) throws FileNotFoundException, RemoteException {
 		// disect the capsule and get it in the format of
 		// a record and add it to the records array of which we
 		// also have a database
@@ -230,5 +230,36 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 		allTokens.addAll(registrar.getCfHashesFromToday());
 
 	}
+
+	void contactUsers(String cfToken, Instant instant) throws FileNotFoundException {
+		database.readFile();
+		matchingService = database.getMatchingService();
+		Record criticRecord = null;
+		if(matchingService.containsKey(cfToken)) {
+			List<Record> record = matchingService.get(cfToken);
+			boolean found = false;
+			for (Record r : record) {
+				if (r.getTime().equals(instant)) {
+					found = true;
+					criticRecord = r;
+				}
+			}
+			if (found) {
+				
+			}else {
+				System.out.println("[Matchingservice] Should not get here...");
+			}
+			
+			
+		}else {
+			System.out.println("[Matchingservice] Is we're here we're kinda fucked.");
+		}
+		
+	}
+
+
+
+
+
 
 }

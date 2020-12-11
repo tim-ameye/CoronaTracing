@@ -23,5 +23,5 @@ public interface RegistrarInterface extends Remote {
 	
 	public void notifyVisitors(ArrayList<String> infectedTokens) throws RemoteException;
 	public void notifyFacility(ArrayList<byte[]> infectedHahses) throws RemoteException;
-	public List<byte[]> getCfHashesFromToday();
+	public List<byte[]> getCfHashesFromToday() throws RemoteException;
 }

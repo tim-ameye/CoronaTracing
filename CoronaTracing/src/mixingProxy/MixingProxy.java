@@ -64,13 +64,13 @@ public class MixingProxy extends UnicastRemoteObject implements MixingProxyInter
 	}
 
 	@Override
-	public String registerVisit(Capsule capsule) throws RemoteException {
+	public String registerVisit(Capsule capsule, PublicKey publicKeyUser) throws RemoteException {
 		
 		// 1: validate of the user token
 		// byte[] userToken = capsule.getUsertoken();
 		try {
 			Cipher cipherText = Cipher.getInstance("RSA");
-			cipherText.init(Cipher.ENCRYPT_MODE, privateKey);
+			cipherText.init(Cipher.ENCRYPT_MODE, publicKeyUser);
 			
 			Certificate certificate = keyStore.getCertificate("registrar");
 			PublicKey publicKey = certificate.getPublicKey();

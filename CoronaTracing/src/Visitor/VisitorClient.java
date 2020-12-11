@@ -10,6 +10,7 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -26,6 +27,7 @@ import java.util.Vector;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -50,12 +52,27 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 	private ArrayList<Visit> visits = new ArrayList<>();
 	private String qrCode;
 	private String[] currentToken;
+	private PublicKey mixingPubKey;
 
 	public VisitorClient() throws RemoteException, NotBoundException {
 		myRegistry = LocateRegistry.getRegistry("localhost", 55545);
 		mixingProxyRegistry = LocateRegistry.getRegistry("localhost", 55546);
 		registerServer = (RegistrarInterface) myRegistry.lookup("Registrar");
 		mixingProxyServer = (MixingProxyInterface) mixingProxyRegistry.lookup("MixingProxy");
+		Certificate cert = null;
+		try {
+			KeyStore keystore = KeyStore.getInstance("JKS");
+			char[] password = "AVB6589klp".toCharArray();
+			FileInputStream fis = new FileInputStream("files\\keystore.jks");
+			keystore.load(fis, password);
+			cert = keystore.getCertificate("mixingProxy");
+		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		mixingPubKey = cert.getPublicKey();
+		
+		
 		this.visitor = null;
 
 	}
@@ -138,20 +155,23 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 		Date date = new Date(System.currentTimeMillis());
 		Instant day = roundTime(date);
 		currentToken = token.getUnusedToken();
-		Capsule capsule = new Capsule(day, currentToken[0], currentToken[1], arguments[2]);
+		Capsule capsule = null;
+		try {
+			KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
+			SecretKey sessionKey = keyGenerator.generateKey();
+			capsule = new Capsule(day, currentToken[0], currentToken[1], arguments[2]).encrypt(sessionKey, mixingPubKey);
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return capsule;
 	}
 
 	public boolean sendCapsule(Capsule capsule) {
 		try {
-			String responseEncrypted = mixingProxyServer.registerVisit(capsule);
-			KeyStore keystore = KeyStore.getInstance("JKS");
-			char[] password = "AVB6589klp".toCharArray();
-			FileInputStream fis = new FileInputStream("files\\keystore.jks");
-			keystore.load(fis, password);
-			Certificate cert = keystore.getCertificate("mixingProxy");
+			String responseEncrypted = mixingProxyServer.registerVisit(capsule, visitor.getPublicKey());
 			Cipher decrypt = Cipher.getInstance("RSA");
-			decrypt.init(Cipher.DECRYPT_MODE, cert);
+			decrypt.init(Cipher.DECRYPT_MODE, visitor.getPrivateKey());
 			byte[] responseByte = decrypt.doFinal(Base64.getDecoder().decode(responseEncrypted));
 			String response = new String(responseByte);
 			System.out.println(response);
@@ -180,7 +200,7 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 				return false;
 			}
 		} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | NoSuchAlgorithmException
-				| NoSuchPaddingException | KeyStoreException | CertificateException | IOException e) {
+				| NoSuchPaddingException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

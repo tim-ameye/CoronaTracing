@@ -219,4 +219,8 @@ public class Database {
 			}
 		}
 	}
+
+	public ArrayList<CateringFacility> getCateringFacilities() {
+		return facilities;
+	}
 }

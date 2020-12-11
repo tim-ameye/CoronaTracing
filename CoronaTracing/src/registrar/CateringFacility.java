@@ -121,6 +121,12 @@ public class CateringFacility {
 		}
 	}
 	
+	public byte[] nymToday() {
+		Date date = new Date(System.currentTimeMillis());
+		Instant today = date.toInstant().truncatedTo(ChronoUnit.DAYS);
+		return hashMap.get(today);
+	}
+	
 	public byte[] getHashToday() {
 		Date date = new Date(System.currentTimeMillis());
 		Instant instant = date.toInstant();

@@ -170,7 +170,7 @@ public class guiVisitor {
 					Visit visit = (Visit) list.getSelectedValue();
 					label_beginTimeOfVisit.setText(visit.getBeginTime().toString());
 					label_endTimeOfVisit.setText(visit.getEndTime().toString());
-					label_cf.setText(visit.getCateringFacility());
+					label_cf.setText(visit.getCateringFacilityToken());
 						
 				}
 			});
@@ -293,16 +293,25 @@ public class guiVisitor {
 		btnSignUp.setBounds(100, 380, 200, 40);
 		panelLogin.add(btnSignUp);
 		
+		JLabel label_errorMessage = new JLabel(" ");
+		label_errorMessage.setForeground(Color.RED);
+		label_errorMessage.setHorizontalAlignment(SwingConstants.CENTER);
+		label_errorMessage.setFont(new Font("Verdana", Font.PLAIN, 18));
+		label_errorMessage.setBounds(0, 275, 384, 30);
+		panelScan.add(label_errorMessage);
+		
 		JButton btnScanQR = new JButton("Scan!");
 		btnScanQR.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				//TODO controleren of die wel goed wordt gegenereerd
-				panelSucces.setVisible(true);
-				panelScan.setVisible(false);
 				Capsule capsule = visitorClient.makeCapsule(textField_QRinputstring.getText());
 				boolean b = visitorClient.sendCapsule(capsule);
 				if(b) {
 					visitorClient.addVisit();
+					panelSucces.setVisible(true);
+					panelScan.setVisible(false);
+				} else {
+					label_errorMessage.setText("Invalid QR-code, pleas rescan");
 				}
 			}
 		});
@@ -313,12 +322,12 @@ public class guiVisitor {
 		JLabel lblPleaseScanThe = new JLabel("Please scan the QR-code");
 		lblPleaseScanThe.setHorizontalAlignment(SwingConstants.CENTER);
 		lblPleaseScanThe.setFont(new Font("Verdana", Font.PLAIN, 18));
-		lblPleaseScanThe.setBounds(0, 50, 384, 30);
+		lblPleaseScanThe.setBounds(0, 30, 384, 30);
 		panelScan.add(lblPleaseScanThe);
 		
 		textField_QRinputstring = new JTextField();
 		textField_QRinputstring.setHorizontalAlignment(SwingConstants.CENTER);
-		textField_QRinputstring.setBounds(100, 90, 200, 200);
+		textField_QRinputstring.setBounds(100, 70, 200, 200);
 		panelScan.add(textField_QRinputstring);
 		textField_QRinputstring.setColumns(10);
 		

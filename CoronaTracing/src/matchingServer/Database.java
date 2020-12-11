@@ -117,7 +117,8 @@ public class Database {
 			
 			for (Record r : records) {
 				//TODO not sure if printwriter will actually make the file itself, i hope so, but if there is an error here, yeah..
-				fpw = new PrintWriter("MatchingService\\" + cfToken + "\\" + r.getTime());
+				File file = new File("MatchingService\\" + cfToken + "\\" + r.getTime());
+				fpw = new PrintWriter(file);
 				//first line is the indicator for critical or not
 				String firstLine = "";
 				if (r.isCritical()) {

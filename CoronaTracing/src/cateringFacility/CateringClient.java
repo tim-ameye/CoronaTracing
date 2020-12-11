@@ -7,6 +7,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.security.InvalidKeyException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.time.Instant;
@@ -172,7 +173,7 @@ public class CateringClient {
 
 	}
 
-	public static void MakeQRForToday(CateringFacility cateringFacility) {
+	public static void MakeQRForToday(CateringFacility cateringFacility) throws NoSuchAlgorithmException {
 
 		int randomNum = ThreadLocalRandom.current().nextInt(0, Integer.MAX_VALUE);
 		String randomNumString = Integer.toString(randomNum);
@@ -186,8 +187,13 @@ public class CateringClient {
 		byte[] currentToken = cateringFacility.getCurrentToken();
 		String tokenAsString = Base64.getEncoder().encodeToString(currentToken);
 
-
-		String QRString = randomNumString + "_" + cfIndentifier + "_" + tokenAsString ;
+		String newHashString = randomNumString + tokenAsString; 
+		MessageDigest md = MessageDigest.getInstance("SHA-256");
+		byte[] nym = md.digest(newHashString.getBytes());
+		
+		String newHashAsString = Base64.getEncoder().encodeToString(nym);
+		
+		String QRString = randomNumString + "_" + cfIndentifier + "_" + newHashAsString ;
 
 
 		// writing the tokes as a string to a qr code located at QRCodes/Brn+Buisnissnummer+Date.png

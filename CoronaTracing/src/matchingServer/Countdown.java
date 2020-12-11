@@ -1,6 +1,8 @@
 package matchingServer;
 import java.awt.Toolkit;
 import java.io.FileNotFoundException;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 import java.time.Instant;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -37,6 +39,12 @@ class RemindTask extends TimerTask {
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NotBoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
     	
     	//timer.cancel(); //Not necessary because we call System.exit
@@ -44,7 +52,7 @@ class RemindTask extends TimerTask {
     }
   }
 
-	public void StartContactingRegistrar(MatchingService mf, String cfToken, Instant instant) throws FileNotFoundException {
+	public void StartContactingRegistrar(MatchingService mf, String cfToken, Instant instant) throws FileNotFoundException, RemoteException, NotBoundException {
 		mf.contactUsers( cfToken,  instant);
 	}
 }

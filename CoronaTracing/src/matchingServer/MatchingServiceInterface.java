@@ -12,13 +12,14 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.util.List;
 
+import Doctor.Infection;
 import Visitor.Visit;
 import mixingProxy.Capsule;
 
 
 public interface MatchingServiceInterface extends Remote{
 	public TokenList getCriticalRecordsOfToday(PublicKey publicKey) throws RemoteException;
-	public void RecieveInfectedUserToken(List<Visit> infectedVisits) throws FileNotFoundException, NoSuchAlgorithmException, RemoteException;
+	public void RecieveInfectedUserToken(Infection infection) throws FileNotFoundException, NoSuchAlgorithmException, RemoteException;
 
 
 	public void sendCapsule(Capsule capsule) throws FileNotFoundException,  RemoteException;

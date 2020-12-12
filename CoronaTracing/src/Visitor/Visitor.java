@@ -104,8 +104,6 @@ public class Visitor implements Serializable{
 		}
 		return encrypted;
 	}
-<<<<<<< HEAD
-=======
 
 	@Override
 	public void alreadyRegistered() throws RemoteException {
@@ -127,7 +125,6 @@ public class Visitor implements Serializable{
 
 
 
->>>>>>> stash
 	
 	public Visitor decrypt(PrivateKey privateKey) {
 		Visitor decrypted = new Visitor();

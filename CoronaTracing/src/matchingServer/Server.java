@@ -6,6 +6,7 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.time.Duration;
@@ -21,7 +22,7 @@ import registrar.Registrar;
 
 public class Server {
 
-	public static void main(String[] args) throws FileNotFoundException, RemoteException, NotBoundException, NoSuchAlgorithmException {
+	public static void main(String[] args) throws FileNotFoundException, RemoteException, NotBoundException, NoSuchAlgorithmException, KeyStoreException {
 		
 		Scanner sc = new Scanner(System.in);
 		Registry registry = null;

@@ -91,7 +91,12 @@ public class Visit {
 	}
 
 	public String toString() {
-		return "Visit "+randomNumber+" Business number: "+this.businessNumber;
+		return "Visit "+this.randomNumber+" Business number: "+this.businessNumber;
+	}
+	
+	public String toExtendedString() {
+		
+		return this.randomNumber+"_"+this.userTokenSigned+"_"+this.userTokenUnsigned+"_"+this.cateringFacilityToken;
 	}
 
 }

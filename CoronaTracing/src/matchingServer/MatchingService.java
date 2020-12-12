@@ -17,6 +17,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -51,9 +52,10 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 	private PrivateKey privateKey;
 	private SecureRandom secureRandom;
 	private KeyGenerator keyGenerator;
-
+	private RegistrarInterface registrar;
+	private PublicKey registrarPubKey;
 	
-	public MatchingService() throws RemoteException, FileNotFoundException, NoSuchAlgorithmException {
+	public MatchingService() throws RemoteException, FileNotFoundException, NoSuchAlgorithmException, NotBoundException {
 		matchingService = new HashMap<>();
 		allTokens = new ArrayList<>();
 		File file = new File("files\\MatchingService");
@@ -63,7 +65,12 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 		Database database = new Database("files\\MatchingService\\Database.txt");
 		database.readFile();
 		System.out.println("[DATABASE] Initialised!");
-	
+		
+		Registry myRegistry = LocateRegistry.getRegistry("localhost", 55545);
+		registrar = (RegistrarInterface) myRegistry.lookup("Registrar");
+
+		
+		
 		this.secureRandom = new SecureRandom();
 		this.keyGenerator = KeyGenerator.getInstance("AES");
 		keyGenerator.init(256, secureRandom);
@@ -76,6 +83,7 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 			keyStore.load(fis, password);
 			
 			privateKey = (PrivateKey) keyStore.getKey("matchingservice", password);
+			registrarPubKey = keyStore.getCertificate("registrar").getPublicKey();
 		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException | UnrecoverableKeyException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -307,11 +315,17 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 				if (notInformed.size() > 0) {
 					System.out.println("[Matchingservice] Trying to contact users who came into contact with an infected person, but were not informed yet");
 					
-					Registry myRegistry = LocateRegistry.getRegistry("localhost", 55545);
-					RegistrarInterface registrar = (RegistrarInterface) myRegistry.lookup("Registrar");
+					// convert notInformed into a tokenList that is encrypted
+					TokenList temp = new TokenList();
+					for (int i = 0; i < notInformed.size(); i++) {
+						temp.add(notInformed.get(i));
+					}
 					
+					SecretKey sessionKey = keyGenerator.generateKey();
+					TokenList encrypted = temp.encrypt(sessionKey, registrarPubKey);
+				
 					//TODO
-					registrar.InformUsers(notInformed);
+					registrar.InformUsers(encrypted);
 
 					System.out.println("[Matchingservice] Users were succesfully contacted!");
 
@@ -364,6 +378,12 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 					}
 					
 				}
+			}
+			if (!foundRecord) {
+				System.out.println("[Matchingservice] We did not find the record that was send with our acknowledge in our database, this should not happen!");
+			}
+			if (!foundPerson) {
+				System.out.println("[Matchingservice] We did not find the user in our record that was send with our acknowledge in our database, this should not happen!");
 			}
 		}else {
 			System.out.println("[Matchingservice] We did not find the cfToken that was send with our acknowledge in our database, this should not happen!");

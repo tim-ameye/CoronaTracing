@@ -19,6 +19,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.awt.Color;
 import java.awt.event.ActionListener;
+import java.io.FileNotFoundException;
 import java.rmi.RemoteException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -232,6 +233,13 @@ public class guiVisitor {
 						visitorClient.getTokens();
 					}
 					//TODO label met please register
+					panelScan.setVisible(true);
+					panelLogin.setVisible(false);
+					visitorClient.setVisitor(visitor);	//TODO make a call to visitorclient which will fetch all infected cfTokens
+					visitorClient.getVisitsFromLogs();	// check if he already had a history
+					visitorClient.getInfectedLogs(); // check if one of our logs was in an infected record 
+					visitorClient.getTokens();
+					//login functie oproepen vd registrar
 				} catch (RemoteException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -248,6 +256,9 @@ public class guiVisitor {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (NoSuchPaddingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (FileNotFoundException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}

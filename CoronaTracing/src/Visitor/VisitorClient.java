@@ -21,6 +21,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.util.Date;
 import java.util.List;
+import java.util.Scanner;
 import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -316,6 +317,35 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 				+ "_" + visit.getCateringFacilityToken();
 		printWriter.println(stringToAppend);
 		printWriter.close();
+	}
+
+	public void getVisitsFromLogs() {
+		
+		File tmpDir = new File("files\\VisitorLogs\\"+visitor.getPhoneNumber()+".txt");
+		boolean exists = tmpDir.exists();
+		
+		if (exists) {
+			//this file is already here, so this is a user that already exists
+			Scanner sc = new Scanner("files\\\\VisitorLogs\\"+visitor.getPhoneNumber()+".txt\"");
+			while (sc.hasNextLine()) {
+				String line =  sc.nextLine();
+				String[] splittedLine = line.split("_");
+				String beginTime = splittedLine[0];
+				String randomNumber = splittedLine[1];
+				String userTokenSigned = splittedLine[2];
+				String userTokenUnsigned = splittedLine[3];
+				String cfToken = splittedLine[4];
+				
+				Visit temp = new Visit(Integer.parseInt(randomNumber), userTokenSigned, userTokenUnsigned, cfToken);
+				temp.setBeginTime(Instant.parse(beginTime));
+				visits.add(temp);				
+			}
+		}else {
+			// file does not exist yet
+			return;
+		}
+
+		
 	}
 
 }

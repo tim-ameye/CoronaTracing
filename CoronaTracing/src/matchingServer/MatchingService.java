@@ -211,11 +211,10 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 		for (int i = 0; i < allTokens.size(); i++) {
 			// hash the current token with the Ri
 			//TODO moet niet meer in een string omgezet worden!!
-			String currentToken = Base64.getEncoder().encodeToString(allTokens.get(i));
-			String currentTokenString = Integer.toString(randomNumber) + currentToken;
+			String currentTokenString = Integer.toString(randomNumber) + allTokens.get(i);
 
 			byte[] nym = md.digest(currentTokenString.getBytes());
-			 currentHashString = Base64.getEncoder().encodeToString(nym);
+			currentHashString = Base64.getEncoder().encodeToString(nym);
 
 			if (currentHashString.equals(cateringFacilityToken)) {
 				// our hashes match so it's valid!

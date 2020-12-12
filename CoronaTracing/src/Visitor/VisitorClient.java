@@ -18,9 +18,11 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
+import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.util.Date;
+import java.util.List;
 import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -35,11 +37,14 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
+import matchingServer.MatchingServiceInterface;
+import mixingProxy.Acknowledge;
 import mixingProxy.Capsule;
 import mixingProxy.MixingProxyInterface;
 import mixingProxy.Response;
 import registrar.RegistrarInterface;
 import registrar.Token;
+import registrar.TokenList;
 
 public class VisitorClient extends UnicastRemoteObject implements VisitorInterface {
 	/**
@@ -50,17 +55,23 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 	private guiVisitor ui;
 	RegistrarInterface registerServer = null;
 	MixingProxyInterface mixingProxyServer = null;
+	MatchingServiceInterface matchingservice = null;
 	Registry myRegistry = null;
 	Registry mixingProxyRegistry = null;
+	Registry matchingRegistry = null;
 	private Token token;
 	private ArrayList<Visit> visits = new ArrayList<>();
 	private String qrCode;
 	private String[] currentToken;
 	private PublicKey mixingPubKey;
+	private PublicKey matchingPubKey;
 
 	public VisitorClient() throws RemoteException, NotBoundException {
 		myRegistry = LocateRegistry.getRegistry("localhost", 55545);
 		mixingProxyRegistry = LocateRegistry.getRegistry("localhost", 55546);
+		matchingRegistry = LocateRegistry.getRegistry("localhost", 55547);
+
+		matchingservice = (MatchingServiceInterface) matchingRegistry.lookup("MatchingService");
 		registerServer = (RegistrarInterface) myRegistry.lookup("Registrar");
 		mixingProxyServer = (MixingProxyInterface) mixingProxyRegistry.lookup("MixingProxy");
 		Certificate cert = null;
@@ -70,6 +81,7 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 			FileInputStream fis = new FileInputStream("files\\keystore.jks");
 			keystore.load(fis, password);
 			cert = keystore.getCertificate("mixingProxy");
+			matchingPubKey = keystore.getCertificate("matchingservice").getPublicKey();
 		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -206,6 +218,59 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 			e.printStackTrace();
 		}
 		return false;
+	}
+	//TODO deze methode moet op regelmatige tijdstippen opgeroept worden
+	public void getInfectedLogs() throws RemoteException, NoSuchAlgorithmException, FileNotFoundException {
+		TokenList temp = matchingservice.getCriticalRecordsOfToday(visitor.getPublicKey());
+		TokenList decrypted = temp.decryt(visitor.getPrivateKey());
+		List<String> criticalRecords = new ArrayList<>();
+		
+		criticalRecords = decrypted.getTokens();
+		// now we have an array list of all the tokens which were infected
+		// check if this users was in one of these infected logs
+		
+
+		for (int i = 0; i < criticalRecords.size(); i++) {
+			String current = criticalRecords.get(i);
+			String[] currentSplitted = current.split("_");
+			String currentHashString = currentSplitted[0];
+			String visitInstant = currentSplitted[1];
+			
+			//check if this currenthash equals one of our visits
+			for (int j = 0; j < visits.size(); j++) {
+				if (visits.get(j).getCateringFacilityToken().equals(currentHashString)) {
+					// we already were at the same cateringfacility :o
+					if (visits.get(j).getBeginTime().toString().equals(visitInstant)) {
+						//damn we were there at the same time interval 
+						System.out.println("[WARNING] You were in a catering facility at the same time of an infected person!");
+						System.out.println("[WARNING] sending acknowledge to to Mixing proxy so the Matching service will now we were informed!");
+						SendAcknowledge(visits.get(j).getCateringFacilityToken(), visits.get(j).getBeginTime(), visits.get(j).getUserTokenSigned());
+					}
+				}
+				
+			}
+			
+		}
+		
+	}
+	
+
+	private void SendAcknowledge(String cfToken, Instant instant, String userToken) throws NoSuchAlgorithmException, RemoteException, FileNotFoundException {
+		// TODO send necessary information to the mixing proxy, so the mixing proxy can forward it back to the matching service!
+
+		Acknowledge ack = new Acknowledge(userToken, cfToken, instant.toString());
+		
+		KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
+		SecretKey sessionKey = keyGenerator.generateKey();
+
+		// encrypt our acknowledge with the public key of matchingservice and a session key
+		ack.encrypt(sessionKey, matchingPubKey);
+		
+		// send this encrypted acknowledge to our mixingproxy
+		mixingProxyServer.sendAndRecieveAcknowledge(ack);
+		
+		
+		
 	}
 
 	public Instant roundTime(Date date) {

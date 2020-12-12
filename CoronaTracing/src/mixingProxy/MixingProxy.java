@@ -172,4 +172,10 @@ public class MixingProxy extends UnicastRemoteObject implements MixingProxyInter
 		return null;
 	}
 
+	@Override
+	public void sendAndRecieveAcknowledge(Acknowledge ack) throws RemoteException, FileNotFoundException {
+		matchingServer.sendAck(ack);
+		
+	}
+
 }

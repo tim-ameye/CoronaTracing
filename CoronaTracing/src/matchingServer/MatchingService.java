@@ -14,6 +14,8 @@ import java.security.KeyStoreException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.time.Instant;
@@ -26,7 +28,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+
 import Visitor.Visit;
+import mixingProxy.Acknowledge;
 import mixingProxy.Capsule;
 import registrar.RegistrarInterface;
 import registrar.TokenList;
@@ -43,9 +49,11 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 	private Database database;
 	private String currentHashString;
 	private PrivateKey privateKey;
+	private SecureRandom secureRandom;
+	private KeyGenerator keyGenerator;
+
 	
-	
-	public MatchingService() throws RemoteException, FileNotFoundException {
+	public MatchingService() throws RemoteException, FileNotFoundException, NoSuchAlgorithmException {
 		matchingService = new HashMap<>();
 		allTokens = new ArrayList<>();
 		File file = new File("files\\MatchingService");
@@ -55,8 +63,11 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 		Database database = new Database("files\\MatchingService\\Database.txt");
 		database.readFile();
 		System.out.println("[DATABASE] Initialised!");
+	
+		this.secureRandom = new SecureRandom();
+		this.keyGenerator = KeyGenerator.getInstance("AES");
+		keyGenerator.init(256, secureRandom);
 
-		
 		KeyStore keyStore;
 		try {
 			keyStore = KeyStore.getInstance("JKS");
@@ -236,8 +247,17 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 		return database;
 	}
 
-	public List<String> getCriticalRecordsOfToday() {
-		return criticalRecordsOfToday;
+	public TokenList getCriticalRecordsOfToday(PublicKey publicKey) {
+		
+		
+		TokenList encrypted = new TokenList();
+		for (int i = 0; i < criticalRecordsOfToday.size(); i++) {
+			encrypted.add(criticalRecordsOfToday.get(i));
+		}
+		SecretKey sessionKey = keyGenerator.generateKey();
+		TokenList temp = encrypted.encrypt(sessionKey, publicKey);
+		
+		return temp;
 	}
 
 	public void setCriticalRecordsOfToday(List<String> criticalRecordsOfToday) {
@@ -248,6 +268,8 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 		this.database = database;
 	}
 
+	
+	
 	public void getNewTokens() throws RemoteException, NotBoundException {
 		Registry myRegistry = LocateRegistry.getRegistry("localhost", 55545);
 		RegistrarInterface registrar = (RegistrarInterface) myRegistry.lookup("Registrar");
@@ -311,6 +333,43 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 	@Override
 	public void testConnection(String text) throws RemoteException {
 		System.out.println("[Matching Service] " + text);
+		
+	}
+
+	@Override
+	public void sendAck(Acknowledge ack) throws FileNotFoundException {
+		// step one decrypt this acknowlegde	
+		Acknowledge acknowledge = ack.Decrypt(privateKey);
+		
+		// search the matching record and set the user that was send with this ack on informed!
+		database.readFile();
+		matchingService  = database.getMatchingService();
+		
+		if (matchingService.containsKey(acknowledge.getQrToken())) {
+			List<Record> records = matchingService.get(acknowledge.getQrToken());
+			boolean foundRecord = false;
+			boolean foundPerson = false;
+			for (Record r : records) {
+				if (r.getTime().toString().equals(acknowledge.getInstant()) ) {
+					foundRecord = true;
+					List<String> userTokens = r.getTokens();
+					
+					for (int i = 0; i < userTokens.size(); i++) {
+						if (userTokens.get(i).equals(acknowledge.getUserTokenSigned())) {
+							foundPerson = true;
+							List<Boolean> inf =r.getInformed();
+							inf.set(i, true);
+							r.setInformed(inf);
+						}
+					}
+					
+				}
+			}
+		}else {
+			System.out.println("[Matchingservice] We did not find the cfToken that was send with our acknowledge in our database, this should not happen!");
+		}
+		
+		
 		
 	}
 

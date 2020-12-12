@@ -21,7 +21,7 @@ import registrar.Registrar;
 
 public class Server {
 
-	public static void main(String[] args) throws FileNotFoundException, RemoteException, NotBoundException {
+	public static void main(String[] args) throws FileNotFoundException, RemoteException, NotBoundException, NoSuchAlgorithmException {
 		
 		Scanner sc = new Scanner(System.in);
 		Registry registry = null;

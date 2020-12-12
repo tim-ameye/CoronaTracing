@@ -305,9 +305,9 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 	public void addVisitToLog(Visit visit) throws IOException {
 		FileWriter fileWriter = new FileWriter("files\\Visitor_logs.txt", true); // Set true for append mode
 		PrintWriter printWriter = new PrintWriter(fileWriter);
-		String stringToAppend = "RandomNumber: " + visit.getRandomNumber() + ", signed usertoken: "
-				+ visit.getUserTokenSigned() + ", unsigned usertoken: " + visit.getUserTokenUnsigned()
-				+ ", hash cateringfacility: " + visit.getCateringFacilityToken();
+		String stringToAppend = visit.getBeginTime()+"_"+visit.getRandomNumber() + "_"
+				+ visit.getUserTokenSigned() + "_" + visit.getUserTokenUnsigned()
+				+ "_" + visit.getCateringFacilityToken();
 		printWriter.println(stringToAppend);
 		printWriter.close();
 	}

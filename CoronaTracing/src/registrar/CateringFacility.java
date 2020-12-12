@@ -11,7 +11,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -24,7 +23,6 @@ public class CateringFacility {
 	private String name;
 	private String adress;
 	private String phoneNumber;
-	private Logger logger;
 	
 	private SecretKey secretKey;
 	
@@ -39,9 +37,6 @@ public class CateringFacility {
 		hash = new Hash();
 	}
 	
-	public void setLogger(Logger logger) {
-		this.logger = logger;
-	}
 	
 	public String getBusinessNumber() {
 		return businessNumber;
@@ -125,7 +120,6 @@ public class CateringFacility {
 			}
 		}
 		if(today.getPseudonyms().isEmpty()) {
-			logger.info("There are no more hashes created for catering facility: " + businessNumber);
 			return null;
 		}
 		return today;

@@ -41,7 +41,6 @@ public class CateringFacility implements Serializable {
 	private String name;
 	private String adress;
 	private String phoneNumber;
-	private Logger logger = Logger.getLogger("CateringFacility");
 	private KeyPair keyPair;
 	private Hash hash;
 	private String sessionKey;
@@ -151,11 +150,11 @@ public class CateringFacility implements Serializable {
 			byte[] busByte = encryptText.doFinal(businessNumber.getBytes());
 			encrypted.businessNumber = Base64.getEncoder().encodeToString(busByte);
 			byte[] nameByte = encryptText.doFinal(name.getBytes());
-			encrypted.businessNumber = Base64.getEncoder().encodeToString(nameByte);
+			encrypted.name = Base64.getEncoder().encodeToString(nameByte);
 			byte[] streetByte = encryptText.doFinal(adress.getBytes());
-			encrypted.businessNumber = Base64.getEncoder().encodeToString(streetByte);
+			encrypted.adress = Base64.getEncoder().encodeToString(streetByte);
 			byte[] phoneByte = encryptText.doFinal(phoneNumber.getBytes());
-			encrypted.businessNumber = Base64.getEncoder().encodeToString(phoneByte);
+			encrypted.phoneNumber = Base64.getEncoder().encodeToString(phoneByte);
 			Cipher encryptSession = Cipher.getInstance("RSA");
 			encryptSession.init(Cipher.ENCRYPT_MODE, publicKey);
 			byte[] encryptedSessionKey = encryptSession.doFinal(sessionKey.getEncoded());
@@ -178,11 +177,11 @@ public class CateringFacility implements Serializable {
 			byte[] busByte = cipherToken.doFinal(Base64.getDecoder().decode(businessNumber));
 			decrypted.businessNumber = new String(busByte);
 			byte[] nameByte = cipherToken.doFinal(Base64.getDecoder().decode(adress));
-			decrypted.businessNumber = new String(nameByte);
+			decrypted.name = new String(nameByte);
 			byte[] streetByte = cipherToken.doFinal(Base64.getDecoder().decode(name));
-			decrypted.businessNumber = new String(streetByte);
+			decrypted.adress = new String(streetByte);
 			byte[] phoneByte = cipherToken.doFinal(Base64.getDecoder().decode(phoneNumber));
-			decrypted.businessNumber = new String(phoneByte);
+			decrypted.phoneNumber = new String(phoneByte);
 		} catch(Exception e) {
 			e.printStackTrace();
 		}

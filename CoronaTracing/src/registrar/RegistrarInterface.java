@@ -11,7 +11,7 @@ public interface RegistrarInterface extends Remote {
 
 	public Response registerCateringFacility(CateringFacility cf, PublicKey pubKey) throws RemoteException; 	//TODO CF-interface opvragen
 	public Response loginCF(CateringFacility cf, PublicKey pubKey) throws RemoteException;
-	public Hash getHashesCatering(String busNumber, String phoNumber, PublicKey publicKey) throws RemoteException;
+	public Hash getHashesCatering(CateringFacility cf, PublicKey publicKey) throws RemoteException;
 	
 	
 	public Response registerVisitor(Visitor v, PublicKey pubKey) throws RemoteException;				//TODO User-interface opvragen

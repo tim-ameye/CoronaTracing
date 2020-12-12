@@ -154,9 +154,10 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 	}
 
 	@Override
-	public Hash getHashesCatering(String busNumber, String phoNumber, PublicKey publicKey)
+	public Hash getHashesCatering(cateringFacility.CateringFacility facility, PublicKey publicKey)
 			throws RemoteException {
-		CateringFacility cf = db.findCateringFacility(busNumber, phoNumber);
+		facility = facility.decrypt(privateKey);
+		CateringFacility cf = db.findCateringFacility(facility.getBusinessNumber(), facility.getPhoneNumber());
 		SecretKey sessionKey = keyGenerator.generateKey();
 		Hash hash = cf.getHashFromToday();
 		try {

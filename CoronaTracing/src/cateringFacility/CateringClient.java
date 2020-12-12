@@ -109,7 +109,7 @@ public class CateringClient {
 			if (currentToken == null) {
 				// this means that our cateringfacility is in our database, but it's outdated
 				// overwrite the current file with our new tokens
-				HashGenerator(cateringFacility, server);
+				HashGenerator(cateringFacility, server, registrarPubKey);
 				db.printFile();
 
 			} else {
@@ -121,7 +121,7 @@ public class CateringClient {
 			System.out.println("[DATABASE] Not yet in database, adding it to our database!");
 
 			// we should generate a new set of hashes and add it to the database
-			HashGenerator(cateringFacility, server);
+			HashGenerator(cateringFacility, server, registrarPubKey);
 			db.addFacility(cateringFacility);
 		}
 		db.printFile();
@@ -143,12 +143,16 @@ public class CateringClient {
 		sc.close();
 	}
 
-	public static void HashGenerator(CateringFacility cateringFacility, RegistrarInterface server) {
+	public static void HashGenerator(CateringFacility cateringFacility, RegistrarInterface server, PublicKey pk) {
 		Hash ans = null;
 		try {
-			ans = server.getHashesCatering(cateringFacility.getBusinessNumber(), cateringFacility.getPhoneNumber(),
+			SecretKey sessionKey = KeyGenerator.getInstance("AES").generateKey();
+			ans = server.getHashesCatering(cateringFacility.encrypt(sessionKey, pk),
 					cateringFacility.getPublic());
 		} catch (RemoteException e) {
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		Hash hash = ans.decrypt(cateringFacility.getPrivate());

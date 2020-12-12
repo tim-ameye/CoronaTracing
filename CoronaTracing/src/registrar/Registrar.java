@@ -17,19 +17,12 @@ import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.UnrecoverableKeyException;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
@@ -52,8 +45,6 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 	private MessageDigest messageDigest;
 	private Signature signature;
 	private PrivateKey privateKey;
-	private Certificate certificate;
-	private KeyFactory keyFactory;
 	private KeyStore keyStore;
 	private PublicKey matchingServicePubKey;
 	private final static String path = "files\\keystore.jks";
@@ -68,7 +59,7 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 			this.keyGenerator = KeyGenerator.getInstance("AES");
 			keyGenerator.init(256, secureRandom);
 			this.signature = Signature.getInstance("SHA512withRSA");
-			this.keyFactory = KeyFactory.getInstance("RSA");
+			KeyFactory.getInstance("RSA");
 
 			
 
@@ -79,7 +70,7 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 
 			privateKey = (PrivateKey) keyStore.getKey("registrar", password);
 
-			certificate = keyStore.getCertificate("registrar");
+			keyStore.getCertificate("registrar");
 			matchingServicePubKey = keyStore.getCertificate("matchingservice").getPublicKey();
 			signature.initSign(privateKey);
 

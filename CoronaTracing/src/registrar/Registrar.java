@@ -31,8 +31,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 
 import Visitor.Visitor;
-import Visitor.VisitorInterface;
-import cateringFacility.CateringInterface;
+import mixingProxy.Response;
 
 public class Registrar extends UnicastRemoteObject implements RegistrarInterface {
 
@@ -102,23 +101,25 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 
 	}
 
-	public boolean registerCateringFacility(CateringInterface cf) throws RemoteException {
+	public Response registerCateringFacility(cateringFacility.CateringFacility cf, PublicKey pubKey) throws RemoteException {
 		Logger logger = Logger.getLogger("Registrar");
 		logger.info("[REGISTRAR] Trying to register a Catering Facility");
 
-		String business = cf.getBusinessNumber();
-		String name = cf.getName();
-		String address = cf.getAdress();
-		String phoneNumber = cf.getPhoneNumber();
+		cateringFacility.CateringFacility decoded = cf.decrypt(privateKey);
+		
+		String business = decoded.getBusinessNumber();
+		String name = decoded.getName();
+		String address = decoded.getAdress();
+		String phoneNumber = decoded.getPhoneNumber();
 
+		Response response = new Response();
+		
 		CateringFacility catering = db.findCateringFacility(business, phoneNumber);
 		if (catering != null) {
 			logger.info("[REGISTRAR] The catering facility has already been registered!");
-			cf.alreadyRegistered();
-			return false;
+			response.setMessage("Already registered");
 		} else {
 			CateringFacility cateringFacility = new CateringFacility(business, name, address, phoneNumber);
-			cateringFacility.setCateringInt(cf);
 			db.addCateringFacility(cateringFacility);
 			logger.info("[REGISTRAR] The catering facility has been added to the list!");
 			try {
@@ -132,14 +133,24 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 			}
 			logger.info("[REGISTRAR] The secret key and first period of hashes has been calculated for:"
 					+ cateringFacility.getBusinessNumber());
-			return true;
+			response.setMessage("registered");
 		}
+		SecretKey sessionKey = keyGenerator.generateKey();
+		return response.encrypt(sessionKey, pubKey);
 	}
 
 	@Override
-	public boolean loginCF(CateringInterface cf) throws RemoteException {
-		// TODO Auto-generated method stub
-		return false;
+	public Response loginCF(cateringFacility.CateringFacility cf, PublicKey pubKey) throws RemoteException {
+		cateringFacility.CateringFacility facility = cf.decrypt(privateKey);
+		CateringFacility cFacility = db.findCateringFacility(facility.getBusinessNumber(), facility.getPhoneNumber());
+		Response response = new Response();
+		if(cFacility == null) {
+			response.setMessage("CF not found");
+		} else {
+			response.setMessage("CF found");
+		}
+		SecretKey sessionKey = keyGenerator.generateKey();
+		return response.encrypt(sessionKey, pubKey);
 	}
 
 	@Override
@@ -161,7 +172,7 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 	}
 
 	@Override
-	public boolean registerVisitor(Visitor v) throws RemoteException {
+	public Response registerVisitor(Visitor v, PublicKey pubKey) throws RemoteException {
 		Logger logger = Logger.getLogger("Registrar");
 		logger.info("[REGISTRAR] trying to register a visitor");
 
@@ -170,11 +181,12 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 		String firstName = visitor.getFirstName();
 		String lastName = visitor.getLastName();
 		String phoneNumber = visitor.getPhoneNumber();
-
+		Response response = new Response();
+		
 		User user = db.findUser(phoneNumber);
 		if (user != null) {
 			logger.info("The visitor has already been registered!");
-			return false;
+			response.setMessage("User already registered");
 		} else {
 			user = new User(firstName, lastName, phoneNumber);
 			db.addVisitor(user);
@@ -188,18 +200,25 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			return true;
+			response.setMessage("registered");
 		}
+		SecretKey sessionKey = keyGenerator.generateKey();
+		return response.encrypt(sessionKey, pubKey);
 	}
 
 	@Override
-	public boolean loginVisitor(Visitor v) throws RemoteException {
+	public Response loginVisitor(Visitor v, PublicKey pubKey) throws RemoteException {
 		Visitor visitor = v.decrypt(privateKey);
 		User user = db.findUser(visitor.getPhoneNumber());
+		Response response = new Response();
+		
 		if(user == null) {
-			return false;
+			response.setMessage("User not found");
+		} else {
+			response.setMessage("User found");
 		}
-		return true;
+		SecretKey sessionKey = keyGenerator.generateKey();
+		return response.encrypt(sessionKey, pubKey);
 	}
 
 	@Override

@@ -1,13 +1,20 @@
 package cateringFacility;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -16,8 +23,12 @@ import java.util.Date;
 import java.util.Scanner;
 import java.util.concurrent.ThreadLocalRandom;
 
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+
 import com.google.zxing.WriterException;
 
+import mixingProxy.Response;
 import registrar.Hash;
 import registrar.RegistrarInterface;
 
@@ -53,16 +64,34 @@ public class CateringClient {
 		}
 		Database db = new Database("files\\CateringFacilities");
 
-		cateringFacility.testConnection("Test from cateringside");
-
 		Registry myRegistry = LocateRegistry.getRegistry("localhost", 55545);
 		server = (RegistrarInterface) myRegistry.lookup("Registrar");
-
-		if (server.registerCateringFacility(cateringFacility)) {
+		PublicKey registrarPubKey = null;
+		try {
+			KeyStore keyStore = KeyStore.getInstance("JKS");
+			char[] password = "AVB6589klp".toCharArray();
+			FileInputStream fis = new FileInputStream("files\\keystore.jks");
+			keyStore.load(fis, password);
+			
+			registrarPubKey = keyStore.getCertificate("registrar").getPublicKey();
+		} catch (KeyStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CertificateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		KeyPair keyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
+		
+		SecretKey sessionKey = KeyGenerator.getInstance("AES").generateKey();
+		CateringFacility cf = cateringFacility.encrypt(sessionKey, registrarPubKey);
+		Response ans = server.registerCateringFacility(cf, keyPair.getPublic()).decrypt(keyPair.getPrivate());
+		if (ans.getMessage().equals("registered")) {
 			System.out.println("[REGISTRAR] We registered the new cateringfacility!");
 		} else {
 			System.out.println("[REGISTRAR] You are already registrated to the registrar, please try to log in.");
-			server.loginCF(cateringFacility);
+			server.loginCF(cf, keyPair.getPublic()).decrypt(keyPair.getPrivate());
 		}
 		db.printFile();
 

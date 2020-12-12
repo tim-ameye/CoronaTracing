@@ -1,6 +1,7 @@
 package cateringFacility;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.rmi.RemoteException;
@@ -13,8 +14,13 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.Date;
 import java.util.logging.Logger;
+
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.oned.EAN13Writer;
@@ -25,7 +31,7 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 
 
 import registrar.Hash;
-public class CateringFacility  extends UnicastRemoteObject implements CateringInterface {
+public class CateringFacility implements Serializable {
 	/**
 	 * 
 	 */
@@ -38,7 +44,11 @@ public class CateringFacility  extends UnicastRemoteObject implements CateringIn
 	private Logger logger = Logger.getLogger("CateringFacility");
 	private KeyPair keyPair;
 	private Hash hash;
+	private String sessionKey;
 	
+	public CateringFacility() {
+		
+	}
 	
 	public CateringFacility(String businessNumber, String name, String adress, String phoneNumber) throws RemoteException{
 		this.businessNumber = businessNumber;
@@ -53,12 +63,6 @@ public class CateringFacility  extends UnicastRemoteObject implements CateringIn
 		}
 		}
 	
-	@Override
-	public void testConnection(String s) throws RemoteException {
-		System.out.println("[CONNECTION_TEST]: "+s);
-		
-	}
-	
 	public PublicKey getPublic() {
 		return keyPair.getPublic();
 	}
@@ -71,7 +75,6 @@ public class CateringFacility  extends UnicastRemoteObject implements CateringIn
 		this.hash = hash;
 	}
 	
-	
 	public String getCurrentToken() {
 		Date date = new Date(System.currentTimeMillis());
 		Instant currentDay = date.toInstant().truncatedTo(ChronoUnit.DAYS);
@@ -82,8 +85,7 @@ public class CateringFacility  extends UnicastRemoteObject implements CateringIn
 			System.out.println("[CATERINGFACILITY] the hashes variable is null, fatal error.");
 		}
 		return null;
-	}
-	
+	}	
 	
 	public BufferedImage createQR(String barcodeText)  throws Exception{
 		 	EAN13Writer barcodeWriter = new EAN13Writer();
@@ -99,7 +101,6 @@ public class CateringFacility  extends UnicastRemoteObject implements CateringIn
         Path path = FileSystems.getDefault().getPath(filePath);
         MatrixToImageWriter.writeToPath(bitMatrix, "PNG", path);
     }
-	
 	
 	public String getBusinessNumber() {
 		return businessNumber;
@@ -134,11 +135,6 @@ public class CateringFacility  extends UnicastRemoteObject implements CateringIn
 		this.hash = hash;
 	}
 
-	@Override
-	public void alreadyRegistered() throws RemoteException {
-		logger.info("You are already registered to the registrar, please login to continue.");
-		
-	}
 	public String toString() {
 		String catering = businessNumber + "_" + name + "_" + adress + "_" + phoneNumber;
 		return catering;
@@ -147,8 +143,51 @@ public class CateringFacility  extends UnicastRemoteObject implements CateringIn
 		return businessNumber + "_" + phoneNumber;
 	}
 
+	public CateringFacility encrypt(SecretKey sessionKey, PublicKey publicKey) {
+		CateringFacility encrypted = new CateringFacility();
+		try {
+			Cipher encryptText = Cipher.getInstance("AES");
+			encryptText.init(Cipher.ENCRYPT_MODE, sessionKey);
+			byte[] busByte = encryptText.doFinal(businessNumber.getBytes());
+			encrypted.businessNumber = Base64.getEncoder().encodeToString(busByte);
+			byte[] nameByte = encryptText.doFinal(name.getBytes());
+			encrypted.businessNumber = Base64.getEncoder().encodeToString(nameByte);
+			byte[] streetByte = encryptText.doFinal(adress.getBytes());
+			encrypted.businessNumber = Base64.getEncoder().encodeToString(streetByte);
+			byte[] phoneByte = encryptText.doFinal(phoneNumber.getBytes());
+			encrypted.businessNumber = Base64.getEncoder().encodeToString(phoneByte);
+			Cipher encryptSession = Cipher.getInstance("RSA");
+			encryptSession.init(Cipher.ENCRYPT_MODE, publicKey);
+			byte[] encryptedSessionKey = encryptSession.doFinal(sessionKey.getEncoded());
+			encrypted.sessionKey = Base64.getEncoder().encodeToString(encryptedSessionKey);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return encrypted;
+	}
 	
-	
+	public CateringFacility decrypt(PrivateKey privateKey) {
+		CateringFacility decrypted = new CateringFacility();
+		try {
+			Cipher cipherKey = Cipher.getInstance("RSA");
+			cipherKey.init(Cipher.DECRYPT_MODE, privateKey);
+			byte[] encryptedSessionKey = Base64.getDecoder().decode(this.sessionKey);
+			SecretKey sessionKey = new SecretKeySpec(cipherKey.doFinal(encryptedSessionKey), "AES");
+			Cipher cipherToken = Cipher.getInstance("AES");
+			cipherToken.init(Cipher.DECRYPT_MODE, sessionKey); 
+			byte[] busByte = cipherToken.doFinal(Base64.getDecoder().decode(businessNumber));
+			decrypted.businessNumber = new String(busByte);
+			byte[] nameByte = cipherToken.doFinal(Base64.getDecoder().decode(adress));
+			decrypted.businessNumber = new String(nameByte);
+			byte[] streetByte = cipherToken.doFinal(Base64.getDecoder().decode(name));
+			decrypted.businessNumber = new String(streetByte);
+			byte[] phoneByte = cipherToken.doFinal(Base64.getDecoder().decode(phoneNumber));
+			decrypted.businessNumber = new String(phoneByte);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		return decrypted;
+	}
 	
 	
 }

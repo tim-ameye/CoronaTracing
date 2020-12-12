@@ -10,7 +10,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -19,8 +18,6 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
-import cateringFacility.CateringInterface;
-
 
 public class CateringFacility {
 	private String businessNumber;
@@ -28,7 +25,6 @@ public class CateringFacility {
 	private String adress;
 	private String phoneNumber;
 	private Logger logger;
-	CateringInterface cateringInt;
 	
 	private SecretKey secretKey;
 	
@@ -70,12 +66,6 @@ public class CateringFacility {
 	}
 	public void setPhoneNumber(String phoneNumber) {
 		this.phoneNumber = phoneNumber;
-	}
-	public CateringInterface getCateringInt() {
-		return cateringInt;
-	}
-	public void setCateringInt(CateringInterface cateringInt) {
-		this.cateringInt = cateringInt;
 	}
 	public SecretKey getSecretKey(KeyStore keyStore) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
 		if(secretKey == null) {

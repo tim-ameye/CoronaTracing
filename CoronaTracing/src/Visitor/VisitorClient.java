@@ -129,14 +129,18 @@ public class VisitorClient {
 		this.visitor = v;
 		SecretKey sessionKey = KeyGenerator.getInstance("AES").generateKey();
 		Visitor encrypt = v.encrypt(sessionKey, registrarPubKey);
-		return registerServer.registerVisitor(encrypt);
+		Response ans = registerServer.registerVisitor(encrypt, visitor.getPublicKey()).decrypt(visitor.getPrivateKey());
+		if(ans.getMessage().equals("registered")) return true;
+		else return false;
 	}
 	
 	public boolean login(Visitor v) throws RemoteException, NoSuchAlgorithmException {
 		this.visitor = v;
 		SecretKey sessionKey = KeyGenerator.getInstance("AES").generateKey();
 		Visitor encrypt = v.encrypt(sessionKey, registrarPubKey);
-		return registerServer.loginVisitor(encrypt);
+		Response ans = registerServer.loginVisitor(encrypt, visitor.getPublicKey()).decrypt(visitor.getPrivateKey());
+		if(ans.getMessage().equals("User found")) return true;
+		else return false;
 	}
 
 	public ArrayList<Visit> getVisits() {

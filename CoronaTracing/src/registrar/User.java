@@ -10,15 +10,12 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
 import Visitor.Visitor;
-import Visitor.VisitorInterface;
 
 public class User {
 
 	private String name;
 	private String surname;
 	private String phoneNumber;	//unique identifier
-	
-	private VisitorInterface visitorInt;
 	
 	private PublicKey publicKey;
 	private ArrayList<Token> tokens;
@@ -59,14 +56,6 @@ public class User {
 
 	public void setPhoneNumber(String phoneNumber) {
 		this.phoneNumber = phoneNumber;
-	}
-	
-	public VisitorInterface getVisitorInt() {
-		return visitorInt;
-	}
-
-	public void setVisitorInt(VisitorInterface visitorInt) {
-		this.visitorInt = visitorInt;
 	}
 
 	public PublicKey getPublicKey() {

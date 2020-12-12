@@ -70,8 +70,6 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 			e.printStackTrace();
 		}
 		
-		// TODO vraag aan tim: welke db wordt hier meegegeven, moet ik deze hier
-		// gebruiken!?
 	}
 
 	public void sendCapsule(Capsule capsule) throws FileNotFoundException, RemoteException {
@@ -82,8 +80,8 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 		Instant currentDay = date.toInstant().truncatedTo(ChronoUnit.DAYS);
 		String currentDayString = currentDay.toString().substring(0, 10);
 
-		// TODO Step one decrypt the capsule
-
+		// Step 1 decrypt the capsule
+		Capsule capluse = capsule.Decrypt(privateKey);
 		// Step 2 get the information out of the capsule
 		String userToken = capsule.getUserTokenSigned();
 		String cfToken = capsule.getQrToken();

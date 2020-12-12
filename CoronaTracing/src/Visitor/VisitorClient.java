@@ -207,7 +207,7 @@ public class VisitorClient {
 				if(current > start +1800000) {
 					start = System.currentTimeMillis();
 					sendCapsule(capsule);
-					System.exit(0);
+					exit = true;
 				}
 				current = System.currentTimeMillis();
 			}

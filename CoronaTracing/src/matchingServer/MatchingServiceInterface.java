@@ -24,5 +24,5 @@ public interface MatchingServiceInterface extends Remote{
 
 	public void sendCapsule(Capsule capsule) throws FileNotFoundException,  RemoteException;
 	public void testConnection(String text) throws RemoteException;
-	public void sendAck(Acknowledge ack) throws FileNotFoundException;
+	public void sendAck(Acknowledge ack) throws RemoteException, FileNotFoundException;
 }

@@ -2,7 +2,10 @@ package Visitor;
 
 import java.awt.EventQueue;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -72,8 +75,7 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 			e.printStackTrace();
 		}
 		mixingPubKey = cert.getPublicKey();
-		
-		
+
 		this.visitor = null;
 
 	}
@@ -214,7 +216,7 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 		return hours;
 	}
 
-	public void addVisit() {// TODO controleren
+	public void addVisit() throws IOException {// TODO controleren
 		String[] arguments = qrCode.split("_");
 		Visit visit = new Visit(Integer.parseInt(arguments[0]), currentToken[0], currentToken[1], arguments[2]); // randomnummmber,
 																													// unique
@@ -226,6 +228,18 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 		Instant day = roundTime(date);
 		visit.setBeginTime(day);
 		visits.add(visit);
+		addVisitToLog(visit);
+	}
+
+	//TODO testen
+	public void addVisitToLog(Visit visit) throws IOException {
+		FileWriter fileWriter = new FileWriter("files\\Visitor_logs.txt", true); // Set true for append mode
+		PrintWriter printWriter = new PrintWriter(fileWriter);
+		String stringToAppend = "RandomNumber: " + visit.getRandomNumber() + ", signed usertoken: "
+				+ visit.getUserTokenSigned() + ", unsigned usertoken: " + visit.getUserTokenUnsigned()
+				+ ", hash cateringfacility: " + visit.getCateringFacilityToken();
+		printWriter.println(stringToAppend);
+		printWriter.close();
 	}
 
 }

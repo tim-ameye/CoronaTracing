@@ -75,7 +75,8 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 		
 		Registry myRegistry = LocateRegistry.getRegistry("localhost", 55545);
 		registrar = (RegistrarInterface) myRegistry.lookup("Registrar");
-
+		
+		criticalRecordsOfToday = new ArrayList<>();
 		
 		
 

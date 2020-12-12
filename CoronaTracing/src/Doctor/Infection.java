@@ -9,6 +9,22 @@ import java.util.Base64;
 import Visitor.Visit;
 
 public class Infection {
+	public ArrayList<String> getSignedVisits() {
+		return signedVisits;
+	}
+
+	public void setSignedVisits(ArrayList<String> signedVisits) {
+		this.signedVisits = signedVisits;
+	}
+
+	public ArrayList<String> getUnsignedVisits() {
+		return unsignedVisits;
+	}
+
+	public void setUnsignedVisits(ArrayList<String> unsignedVisits) {
+		this.unsignedVisits = unsignedVisits;
+	}
+
 	private ArrayList<String> signedVisits;
 	private ArrayList<String> unsignedVisits;
 	Signature signature;

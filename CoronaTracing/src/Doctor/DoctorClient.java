@@ -43,7 +43,8 @@ public class DoctorClient {
 	}
 	
 	public static void addVisitsToInfection(ArrayList<Instant> days, int phoneNumber, Doctor doctor) throws IOException {
-		infection = new Infection(doctor);
+		infection = new Infection();
+		infection.signSignature(doctor);
 		for(Instant day : days) {
 			BufferedReader br = new BufferedReader(new StringReader("files\\Visitor_logs\\"+phoneNumber+".txt"));
 			String line = null;
@@ -52,6 +53,7 @@ public class DoctorClient {
 				Instant instant = Instant.parse(info[0]).truncatedTo(ChronoUnit.DAYS);
 				if(instant == day) {
 					Visit visit = new Visit(Integer.parseInt(info[1]),info[2],info[3],info[4]);
+					visit.setBeginTime(instant);
 					infection.add(visit);
 				}
 			}

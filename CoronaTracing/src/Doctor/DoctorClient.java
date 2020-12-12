@@ -1,27 +1,35 @@
 package Doctor;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+
 import Visitor.Visit;
+import matchingServer.MatchingService;
 import matchingServer.MatchingServiceInterface;
 import registrar.RegistrarInterface;
 
 public class DoctorClient {
 	private static Infection infection = null;
 	private static ArrayList<Instant> infectionDays = null;
+	private static MatchingServiceInterface server;
+	
 	
 	public static void main(String[] args) throws NotBoundException, NoSuchAlgorithmException, IOException {
-		MatchingServiceInterface server;
 		Scanner sc = new Scanner(System.in);
 		
 		Registry myRegistry = LocateRegistry.getRegistry("localhost", 55547);
@@ -39,10 +47,11 @@ public class DoctorClient {
 		}
 		
 		System.out.println("Thanks Doctor, we will send this to the server!");
-		addVisitsToInfection(infectionDays, phoneNumber,doctor);	
+		Infection encryptedInfection = addVisitsToInfection(infectionDays, phoneNumber,doctor);
+		sendInfection(encryptedInfection);
 	}
 	
-	public static void addVisitsToInfection(ArrayList<Instant> days, int phoneNumber, Doctor doctor) throws IOException {
+	public static Infection addVisitsToInfection(ArrayList<Instant> days, int phoneNumber, Doctor doctor) throws IOException {
 		infection = new Infection();
 		infection.signSignature(doctor);
 		for(Instant day : days) {
@@ -58,10 +67,25 @@ public class DoctorClient {
 				}
 			}
 		}
+		SecretKey sessionKey;
+		try {
+			sessionKey = KeyGenerator.getInstance("AES").generateKey();
+			infection = infection.encrypt(sessionKey, doctor.getKeyPair().getPublic());
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return infection;
 	}
 	
 	public static boolean sendInfection(Infection infection) {
-		
+		try {
+			server.recieveInfectedUserToken(infection);
+		} catch (InvalidKeyException | FileNotFoundException | NoSuchAlgorithmException | RemoteException
+				| SignatureException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return false;
 	}
 }

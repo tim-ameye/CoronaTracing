@@ -1,6 +1,5 @@
 package cateringFacility;
 
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -16,6 +15,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.logging.Logger;
 
+import registrar.Hash;
 
 public class Database {
 
@@ -32,88 +32,79 @@ public class Database {
 	public void readFile() throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
 		logger.info("Started reading the database file.");
 		// read the database file
-		Scanner sc = new Scanner(dbFile);
-		FileInputStream sigfig = null;
-		File sig = null;
-		sc.nextLine();
-		String line = sc.nextLine();
-		while (!line.equals("#End")) {
+		Scanner sigfig = null;
+		Hash hash = new Hash();
+		String[] lijst = dbFile.list();
+		for(String line: lijst) {
 			String[] info = line.split("_");
 			CateringFacility cf = new CateringFacility(info[0], info[1], info[2], info[3]);
-			for(int i = 4; i < info.length; i++) {
-				Instant date = Instant.parse(info[i]);
-				sig = new File("CateringFacilities\\"+cf.toStringFileName()+"\\" + info[i].toString().substring(0, 10));
-				sigfig = new FileInputStream("CateringFacilities\\"+cf.toStringFileName()+"\\" + info[i].toString().substring(0, 10));
-				byte[] token = new byte[(int) sig.length()];
-				sigfig.read(token);
-				
-				cf.getHashes().put(date, token);		//TODO Check if this actually works, not so sure 
+			sigfig = new Scanner(new File("files\\CateringFacilities\\" + line));
+			while (sigfig.hasNextLine()) {
+				String date = sigfig.nextLine();
+				String pseudo = sigfig.nextLine();
+				hash.put(date, pseudo);
 			}
+			cf.setHash(hash);
 			facilities.add(cf);
-			line = sc.nextLine();
-		}					
-		sc.close();
+		}
+		
+		
 	}
 
-	public void addFacility(CateringFacility cateringFacility) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
+	public void addFacility(CateringFacility cateringFacility)
+			throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
 		// check if it's not already in our db
 		printFile();
-		readFile(); // this will update the facilities 
-		
-		CateringFacility cf = findCateringFacility(cateringFacility.getBusinessNumber(), cateringFacility.getPhoneNumber());
-		if (cf == null) {			
+		readFile(); // this will update the facilities
+
+		CateringFacility cf = findCateringFacility(cateringFacility.getBusinessNumber(),
+				cateringFacility.getPhoneNumber());
+		if (cf == null) {
 			facilities.add(cateringFacility);
 			System.out.println("[DATABASE] Catering facility added");
-		}else {
+		} else {
 			System.out.println("[DATABASE] No catering facility added, already in our list!");
 		}
 	}
-	
-	public Map<Instant, byte[]> getSavedHashes(CateringFacility cateringFacility) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException{
-		Map<Instant, byte[]> hashes = new HashMap<>();
+
+	public Hash getSavedHashes(CateringFacility cateringFacility)
+			throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
+		Hash hash = new Hash();
 		// make sure our cateringfacilities is updated
 		readFile();
-		
-		CateringFacility cf = findCateringFacility(cateringFacility.getBusinessNumber(), cateringFacility.getPhoneNumber());
-		hashes = cf.getHashes(); // hmmmmmmmmmmm not sure how things work here
-		
-		
-		return hashes;
-		
+
+		CateringFacility cf = findCateringFacility(cateringFacility.getBusinessNumber(),
+				cateringFacility.getPhoneNumber());
+		hash = cf.getHashes(); // hmmmmmmmmmmm not sure how things work here
+
+		return hash;
+
 	}
-	
-	
-	
+
 	public void printFile() throws IOException {
-		PrintWriter pw = new PrintWriter(dbFile);
-		FileOutputStream sigfos = null;
+		PrintWriter sigfos = null;
 		File sigfile = null;
-		pw.println("#Facilities");
 		for (CateringFacility cf : facilities) {
-			pw.println(cf.toString());
-			sigfile = new File("CateringFacilities\\" + cf.toStringFileName());
+			sigfile = new File("files\\CateringFacilities");
 			if (!sigfile.exists()) {
 				sigfile.mkdirs();
 			}
-			Map<Instant, byte[]> tokens = cf.getHashes();
-			for (Map.Entry<Instant, byte[]> entry : tokens.entrySet()) {
-				sigfos = new FileOutputStream("CateringFacilities\\" + cf.toStringFileName() + "\\" + entry.getKey().toString().substring(0, 10));
-				sigfos.write(entry.getValue());
-				sigfos.close();
+			sigfos = new PrintWriter("files\\CateringFacilities\\" + cf.toString() + "_.txt");
+			for (Map.Entry<String, String> entry : cf.getHashes().getPseudonyms().entrySet()) {
+				sigfos.println(entry.getKey());
+				sigfos.println(entry.getValue());
 			}
+			sigfos.close();
 		}
-		
-		pw.println("#End");
-		pw.flush();
-		pw.close();
 	}
 
-	public CateringFacility findCateringFacility(String business, String phoneNumber) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
+	public CateringFacility findCateringFacility(String business, String phoneNumber)
+			throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
 		readFile();
 		for (CateringFacility cf : facilities) {
-			if (cf.getBusinessNumber().toString() == (business) && cf.getPhoneNumber().toString() ==(phoneNumber))
+			if (cf.getBusinessNumber().toString() == (business) && cf.getPhoneNumber().toString() == (phoneNumber))
 				System.out.println("[DATABASE] Found it!");
-				return cf;
+			return cf;
 		}
 		System.out.println("[DATABASE] Couldn't find current facility.");
 		return null;

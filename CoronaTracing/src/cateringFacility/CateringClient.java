@@ -6,7 +6,6 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -14,17 +13,8 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ThreadLocalRandom;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
 import com.google.zxing.WriterException;
 
@@ -37,6 +27,9 @@ public class CateringClient {
 	 * private String phoneNumber;
 	 * 
 	 */
+	
+	private Instant today;
+	private int randomInteger;
 
 	public static void main(String[] args)
 			throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NotBoundException {
@@ -53,12 +46,12 @@ public class CateringClient {
 		String phoneNumber = sc.nextLine();
 		CateringFacility cateringFacility = new CateringFacility(businessNumber, name, adress, phoneNumber);
 
-		File dbFile = new File("CateringFacilities\\" + cateringFacility.toStringFileName());
+		File dbFile = new File("files\\CateringFacilities");
 
 		if (!dbFile.exists()) {
 			dbFile.mkdirs();
 		}
-		Database db = new Database("CateringFacilities\\" + cateringFacility.toStringFileName() + "\\Database.txt");
+		Database db = new Database("files\\CateringFacilities");
 
 		cateringFacility.testConnection("Test from cateringside");
 
@@ -71,19 +64,19 @@ public class CateringClient {
 			System.out.println("[REGISTRAR] You are already registrated to the registrar, please try to log in.");
 			server.loginCF(cateringFacility);
 		}
-		Date date = new Date(System.currentTimeMillis());
-		Instant currentDay = date.toInstant().truncatedTo(ChronoUnit.DAYS);
 		db.printFile();
 
 		CateringFacility temp = db.findCateringFacility(cateringFacility.getBusinessNumber(),
 				cateringFacility.getPhoneNumber());
 
+		today = new Date(System.currentTimeMillis())
+		
 		if (temp != null) {
 			System.out.println("[DATABASE] Already in database, checking if tokens are up to date");
-			Map<Instant, byte[]> TempHashes = db.getSavedHashes(temp);
+			Hash TempHashes = db.getSavedHashes(temp);
 			cateringFacility.setHashes(TempHashes);
 
-			byte[] currentToken = cateringFacility.getCurrentToken();
+			String currentToken = cateringFacility.getCurrentToken();
 			if (currentToken == null) {
 				// this means that our cateringfacility is in our database, but it's outdated
 				// overwrite the current file with our new tokens
@@ -127,7 +120,6 @@ public class CateringClient {
 			ans = server.getHashesCatering(cateringFacility.getBusinessNumber(), cateringFacility.getPhoneNumber(),
 					cateringFacility.getPublic());
 		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		Hash hash = ans.decrypt(cateringFacility.getPrivate());
@@ -145,10 +137,9 @@ public class CateringClient {
 		Instant currentDay = date.toInstant().truncatedTo(ChronoUnit.DAYS);
 		String currentDayString = currentDay.toString().substring(0, 10);
 
-		byte[] currentToken = cateringFacility.getCurrentToken();
-		String tokenAsString = Base64.getEncoder().encodeToString(currentToken);
+		String currentToken = cateringFacility.getCurrentToken();
 
-		String newHashString = randomNumString + tokenAsString;
+		String newHashString = randomNumString + currentToken;
 		MessageDigest md = MessageDigest.getInstance("SHA-256");
 		byte[] nym = md.digest(newHashString.getBytes());
 
@@ -161,8 +152,12 @@ public class CateringClient {
 		try {
 
 			System.out.println("[SYSTEM] Trying to make the QR for string: " + QRString);
+			File qrCodesSave = new File("files\\QRCodes");
+			if(!qrCodesSave.exists()) {
+				qrCodesSave.mkdir();
+			}
 			cateringFacility.generateQRCodeImage(QRString, 200, 200,
-					"./QRCodes/Bnr" + cateringFacility.getBusinessNumber() + "D" + currentDayString + ".png");
+					"files\\QRCodes\\Bnr" + cateringFacility.getBusinessNumber() + "D" + currentDayString + ".png");
 			System.out.println("[SYSTEM] qr code should be found at: ./QRCodes/Bnr"
 					+ cateringFacility.getBusinessNumber() + "D" + currentDayString + ".png");
 

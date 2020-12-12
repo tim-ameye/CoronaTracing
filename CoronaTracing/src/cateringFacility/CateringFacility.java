@@ -14,8 +14,6 @@ import java.security.PublicKey;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import com.google.zxing.common.BitMatrix;
@@ -25,10 +23,14 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 
-import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 
 import registrar.Hash;
 public class CateringFacility  extends UnicastRemoteObject implements CateringInterface {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -7242604888549206510L;
+	
 	private String businessNumber;
 	private String name;
 	private String adress;
@@ -37,16 +39,12 @@ public class CateringFacility  extends UnicastRemoteObject implements CateringIn
 	private KeyPair keyPair;
 	private Hash hash;
 	
-	private Map<Instant, byte[]> hashes;
-	private byte[] currentToken;
 	
 	public CateringFacility(String businessNumber, String name, String adress, String phoneNumber) throws RemoteException{
 		this.businessNumber = businessNumber;
 		this.name = name;
 		this.adress = adress;
 		this.phoneNumber = phoneNumber;
-		hashes = new HashMap<>();
-		currentToken = null;
 		try {
 			keyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
 		} catch (NoSuchAlgorithmException e) {
@@ -74,16 +72,12 @@ public class CateringFacility  extends UnicastRemoteObject implements CateringIn
 	}
 	
 	
-	public byte[] getCurrentToken() {
+	public String getCurrentToken() {
 		Date date = new Date(System.currentTimeMillis());
 		Instant currentDay = date.toInstant().truncatedTo(ChronoUnit.DAYS);
 		
-		if (hashes != null) {
-			if (hashes.containsKey(currentDay)) {
-				currentToken = hashes.get(currentDay);
-				return currentToken;
-			}
-			System.out.println("[CATERINGFACILITY] could not find the current day "+ currentDay + " in our hashes map. " );
+		if (hash != null) {
+			return hash.getPseudonyms().get(currentDay);
 		}else {
 			System.out.println("[CATERINGFACILITY] the hashes variable is null, fatal error.");
 		}
@@ -132,12 +126,12 @@ public class CateringFacility  extends UnicastRemoteObject implements CateringIn
 		this.phoneNumber = phoneNumber;
 	}
 
-	public Map<Instant, byte[]> getHashes() {
-		return hashes;
+	public Hash getHashes() {
+		return hash;
 	}
 
-	public void setHashes(Map<Instant, byte[]> hashes) {
-		this.hashes = hashes;
+	public void setHashes(Hash hash) {
+		this.hash = hash;
 	}
 
 	@Override
@@ -147,9 +141,6 @@ public class CateringFacility  extends UnicastRemoteObject implements CateringIn
 	}
 	public String toString() {
 		String catering = businessNumber + "_" + name + "_" + adress + "_" + phoneNumber;
-		for(Map.Entry<Instant,byte[]> entry : hashes.entrySet()) {
-			catering += "_" + entry.getKey().toString();
-		}
 		return catering;
 	}
 	public String toStringFileName() {

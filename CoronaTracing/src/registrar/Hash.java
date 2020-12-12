@@ -6,6 +6,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.time.Instant;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.crypto.Cipher;
@@ -22,7 +23,9 @@ public class Hash implements Serializable {
 	private Map<String, String> pseudonyms;
 	private String sessionKey;
 	
-	public Hash() {}
+	public Hash() {
+		pseudonyms = new HashMap<>();
+	}
 
 	public Map<String, String> getPseudonyms() {
 		return pseudonyms;

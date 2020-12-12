@@ -271,10 +271,4 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 		return encrypted;
 	}
 
-	@Override
-	public void InformUsers(List<String> notInformed) {
-		// TODO 
-		// contact everyone in this list!
-		
-	}
 }

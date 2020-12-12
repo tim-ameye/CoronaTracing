@@ -310,7 +310,7 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 
 	@Override
 	public void testConnection(String text) throws RemoteException {
-		System.out.println("Mathcing Service: " + text);
+		System.out.println("[Matching Service] " + text);
 		
 	}
 

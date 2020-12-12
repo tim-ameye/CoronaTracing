@@ -18,7 +18,7 @@ public class DoctorClient {
 		Registry myRegistry = LocateRegistry.getRegistry("localhost", 55547);
 		server = (MatchingServiceInterface) myRegistry.lookup("MatchingService");
 		Doctor doctor = new Doctor();
-		server.testConnection("Dit is een test");
+		server.testConnection("TEST CONNECTION");
 		
 	}
 }

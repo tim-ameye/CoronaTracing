@@ -177,7 +177,7 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 		try {
 			KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
 			SecretKey sessionKey = keyGenerator.generateKey();
-			capsule = new Capsule(day, currentToken[0], currentToken[1], arguments[2]);
+			capsule = new Capsule(day, currentToken[0], currentToken[1], arguments[3]);
 			capsule = capsule.encrypt(sessionKey, mixingPubKey);
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
@@ -286,7 +286,7 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 
 	public void addVisit() {// TODO controleren
 		String[] arguments = qrCode.split("_");
-		Visit visit = new Visit(Integer.parseInt(arguments[0]), currentToken[0], currentToken[1], arguments[2]); // randomnummmber,
+		Visit visit = new Visit(Integer.parseInt(arguments[0]), currentToken[0], currentToken[1], arguments[3]); // randomnummmber,
 																													// unique
 																													// identifier,
 																													// hash

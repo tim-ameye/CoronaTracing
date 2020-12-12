@@ -134,8 +134,8 @@ public class Token implements Serializable{
 			for(int i = 0; i < signedTokens.size(); i++) {
 				byte[] signed = cipherToken.doFinal(Base64.getDecoder().decode(signedTokens.get(i)));
 				byte[] unsigned = cipherToken.doFinal(Base64.getDecoder().decode(unsignedTokens.get(i)));
-				decrypted.signedTokens.add(Base64.getEncoder().encodeToString(signed));
-				decrypted.unsignedTokens.add(Base64.getEncoder().encodeToString(unsigned));
+				decrypted.signedTokens.add(new String(signed));
+				decrypted.unsignedTokens.add(new String(unsigned));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

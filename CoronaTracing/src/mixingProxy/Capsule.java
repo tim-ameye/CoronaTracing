@@ -82,11 +82,11 @@ public class Capsule implements Serializable{
 			encryptText.init(Cipher.ENCRYPT_MODE, sessionKey);
 			byte[] time = encryptText.doFinal(currentTimeInterval.toString().getBytes());
 			encrypted.currentTimeInterval = Base64.getEncoder().encodeToString(time);
-			byte[] hash = encryptText.doFinal(Base64.getDecoder().decode(qrToken));
+			byte[] hash = encryptText.doFinal(qrToken.getBytes());
 			encrypted.qrToken = Base64.getEncoder().encodeToString(hash);
-			byte[] signed = encryptText.doFinal(Base64.getDecoder().decode(userTokenSigned));
+			byte[] signed = encryptText.doFinal(userTokenSigned.getBytes());
 			encrypted.userTokenSigned = Base64.getEncoder().encodeToString(signed);
-			byte[] unsigned = encryptText.doFinal(Base64.getDecoder().decode(userTokenUnsigned));
+			byte[] unsigned = encryptText.doFinal(userTokenUnsigned.getBytes());
 			encrypted.userTokenUnsigned = Base64.getEncoder().encodeToString(unsigned);
 			Cipher encryptSession = Cipher.getInstance("RSA");
 			encryptSession.init(Cipher.ENCRYPT_MODE, pk);
@@ -110,11 +110,11 @@ public class Capsule implements Serializable{
 			byte[] time = cipherToken.doFinal(Base64.getDecoder().decode(currentTimeInterval.toString()));
 			decrypted.currentTimeInterval = new String(time);
 			byte[] hash = cipherToken.doFinal(Base64.getDecoder().decode(qrToken));
-			decrypted.qrToken = Base64.getEncoder().encodeToString(hash);
+			decrypted.qrToken = new String(hash);
 			byte[] signed = cipherToken.doFinal(Base64.getDecoder().decode(userTokenSigned));
-			decrypted.userTokenSigned = Base64.getEncoder().encodeToString(signed);
+			decrypted.userTokenSigned = new String(signed);
 			byte[] unsigned = cipherToken.doFinal(Base64.getDecoder().decode(userTokenUnsigned));
-			decrypted.userTokenUnsigned = Base64.getEncoder().encodeToString(unsigned);
+			decrypted.userTokenUnsigned = new String(unsigned);
 		} catch(Exception e) {
 			e.printStackTrace();
 		}

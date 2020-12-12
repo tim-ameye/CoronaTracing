@@ -29,7 +29,7 @@ public class CateringClient {
 	 */
 	
 	private static Instant today;
-	private int randomInteger;
+	private static int randomInteger = -1;
 
 	public static void main(String[] args)
 			throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NotBoundException {
@@ -127,14 +127,18 @@ public class CateringClient {
 	}
 
 	public static void MakeQRForToday(CateringFacility cateringFacility) throws NoSuchAlgorithmException {
-
-		int randomNum = ThreadLocalRandom.current().nextInt(0, Integer.MAX_VALUE);
-		String randomNumString = Integer.toString(randomNum);
-
-		String cfIndentifier = cateringFacility.toStringFileName();
-
+		
 		Date date = new Date(System.currentTimeMillis());
 		Instant currentDay = date.toInstant().truncatedTo(ChronoUnit.DAYS);
+		
+		if(!today.equals(currentDay) || randomInteger == -1) {
+			randomInteger = ThreadLocalRandom.current().nextInt(0, Integer.MAX_VALUE);
+		}
+
+		String randomNumString = Integer.toString(randomInteger);
+		
+		String cfIndentifier = cateringFacility.toStringFileName();
+		
 		String currentDayString = currentDay.toString().substring(0, 10);
 
 		String currentToken = cateringFacility.getCurrentToken();

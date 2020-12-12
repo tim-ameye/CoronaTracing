@@ -1,6 +1,7 @@
 package Visitor;
 
 import java.io.Serializable;
+import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -24,12 +25,15 @@ public class Visitor implements Serializable{
 	private String lastName;
 	private String phoneNumber;
 	private KeyPair keyPair;
+	private PublicKey publicKey;
 	private String pubKey;
 	private String sessionKey;
 	
 	public Visitor(){
 		try {
-			keyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
+			KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+			kpg.initialize(2048);
+			keyPair = kpg.genKeyPair();
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -48,6 +52,7 @@ public class Visitor implements Serializable{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		pubKey = Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded());
 	}
 	
 	public String getFirstName() {
@@ -105,24 +110,6 @@ public class Visitor implements Serializable{
 		return encrypted;
 	}
 
-	@Override
-	public void alreadyRegistered() throws RemoteException {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void setGUI(guiVisitor t) throws RemoteException {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public guiVisitor getGUI() throws RemoteException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 
 
 	
@@ -143,7 +130,7 @@ public class Visitor implements Serializable{
 			decrypted.phoneNumber = new String(phoneNumberByte);
 			byte[] pubKeyByte = cipherToken.doFinal(Base64.getDecoder().decode(pubKey));
 			decrypted.pubKey = new String(pubKeyByte);
-			keyPair = new KeyPair((PublicKey) new X509EncodedKeySpec(Base64.getDecoder().decode(pubKey.getBytes())), null);
+			decrypted.publicKey = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(Base64.getDecoder().decode(decrypted.pubKey)));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

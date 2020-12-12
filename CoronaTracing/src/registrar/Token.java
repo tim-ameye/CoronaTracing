@@ -1,7 +1,6 @@
 package registrar;
 
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
@@ -105,8 +104,8 @@ public class Token implements Serializable{
 			byte[] date = encryptText.doFinal(day.getBytes());
 			encrypted.day = Base64.getEncoder().encodeToString(date);
 			for(int i = 0; i < signedTokens.size(); i++) {
-				byte[] signed = encryptText.doFinal(Base64.getDecoder().decode(signedTokens.get(i)));
-				byte[] unsigned = encryptText.doFinal(Base64.getDecoder().decode(unsignedTokens.get(i)));
+				byte[] signed = encryptText.doFinal(signedTokens.get(i).getBytes());
+				byte[] unsigned = encryptText.doFinal(unsignedTokens.get(i).getBytes());
 				encrypted.signedTokens.add(Base64.getEncoder().encodeToString(signed));
 				encrypted.unsignedTokens.add(Base64.getEncoder().encodeToString(unsigned));
 			}
@@ -114,6 +113,7 @@ public class Token implements Serializable{
 			encryptSession.init(Cipher.ENCRYPT_MODE, pk);
 			byte[] encryptedSessionKey = encryptSession.doFinal(sessionKey.getEncoded());
 			encrypted.sessionKey = Base64.getEncoder().encodeToString(encryptedSessionKey);
+			System.out.println();
 		} catch(Exception e) {
 			e.printStackTrace();
 		}

@@ -69,7 +69,7 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 		if(!file.exists()) {
 			file.mkdir();
 		}
-		Database database = new Database("files\\MatchingService\\Database.txt");
+		database = new Database("files\\MatchingService\\Database.txt");
 		database.readFile();
 		System.out.println("[DATABASE] Initialised!");
 		
@@ -122,14 +122,9 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 
 		// before using the cateringFacilities map we should first synchronise it with
 		// our files by running a read command :p
-		File dbFile = new File("MatchingService\\" + cfToken);
-		if (!dbFile.exists()) {
-			dbFile.mkdirs();
-		}
+		
 		// Synchronise our
-		System.out.println("[MATCHINGSERVICE] Synchronising database and adding the capsule...");
-		database.readFile();
-		matchingService = database.getMatchingService();
+		System.out.println("[MATCHINGSERVICE] Synchronising database and adding the capsule...");	
 
 		// see if this cateringFacility is already in our matchingService database
 		if (matchingService.containsKey(cfToken)) {
@@ -166,8 +161,6 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 		}
 		// normally is now the cateringFacilities Map updated and so we should reprint
 		// it so it's kept up to date
-		database.setMatchingService(matchingService);
-		database.printFile();
 		System.out.println("[MATCHINGSERVICE] Database succesfully synchronised and the caplsule was added.");
 
 	}

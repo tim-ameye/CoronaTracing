@@ -25,9 +25,6 @@ public class Server {
 				if(sc.hasNext()) {
 					input = sc.nextLine();
 				}
-				if(currentTime > lastTime + 18000000) { //ieder halfuur
-					mixingProxy.sendCapsules();
-				}
 			}
 			registry.unbind("MixingProxy");
 			sc.close();

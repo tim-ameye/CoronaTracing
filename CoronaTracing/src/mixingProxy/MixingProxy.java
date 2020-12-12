@@ -57,6 +57,9 @@ public class MixingProxy extends UnicastRemoteObject implements MixingProxyInter
 			privateKey = (PrivateKey) keyStore.getKey("mixingproxy", password);
 			certificate = keyStore.getCertificate("mixingproxy");
 			matchingServicePubKey = keyStore.getCertificate("matchingservice").getPublicKey();
+			Thread send = new Thread(new Send(this));
+			send.start();
+			System.out.println("bound");
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -152,14 +155,45 @@ public class MixingProxy extends UnicastRemoteObject implements MixingProxyInter
 			keyGenerator.init(256, random);
 			SecretKey sessionKey = keyGenerator.generateKey();
 			for(Capsule capsule: shuffle) {
-				capsule.encrypt(sessionKey, matchingServicePubKey);
-				matchingServer.sendCapsule(capsule);
+				matchingServer.sendCapsule(capsule.encrypt(sessionKey, matchingServicePubKey));
 			}
+			queue = new LinkedList<>();
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
 	}
+	
+	//if(currentTime > lastTime + 1800) { //ieder halfuur
+	//mixingProxy.sendCapsules();
+	//}
 
+	public class Send extends Thread {
+		
+		MixingProxy mp;
+		
+		public Send(MixingProxy mp) {
+			this.mp = mp;
+		}
+		
+		private volatile boolean exit = false;
+
+		public void run() {
+			long current = System.currentTimeMillis();
+			long start = System.currentTimeMillis();
+			while(!exit) {
+				if(current > start +1800) {
+					start = System.currentTimeMillis();
+					mp.sendCapsules();
+				}
+				current = System.currentTimeMillis();
+			}
+		}
+		
+		public void stopThread() {
+			exit = true;
+		}
+			
+	}
 
 	@Override
 	public void sendAndRecieveAcknowledge(Acknowledge ack) throws RemoteException, FileNotFoundException {

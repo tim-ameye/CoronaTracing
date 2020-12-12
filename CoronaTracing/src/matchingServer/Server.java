@@ -65,11 +65,14 @@ public class Server {
 				}
 			} else if(input.equals("Save")) {
 				System.out.println("[MatchingService] The database has been updated, jk this command does absolutly noting.");
+				matchingService.getDatabase().setMatchingService(matchingService.getMatchingService());
+				matchingService.getDatabase().printFile();
 			} else if(input.equals("Expired")) {
 				System.out.println("[MatchingService] Out of date hashes and tokens have been removed. Save to put the changes in the files.");
 			}
 			input = sc.nextLine();
 		}
 	}
+	
 
 }

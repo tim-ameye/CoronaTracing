@@ -46,19 +46,21 @@ public class Database {
 		sc.nextLine();
 		String line = sc.nextLine();
 		while (!line.equals("#End")) {
-			String[] info = line.split("_");
 			//TODO controleren of deze 2 waarden goed ingelezen worden!
-			String cfToken = info[0];
-			String[] timeIntervals = Arrays.copyOfRange(info, 1, info.length-1);
-			
+			String cfToken = line;
+			line = sc.nextLine();
+			String[] timeIntervals = line.split("_");
 			// initiate our map before filling it! 
 			List<Record> records = new ArrayList<>();
 			matchingService.put(cfToken, records);
 			
-			for(int i = 1; i < info.length; i++) {
+			for(int i = 1; i < timeIntervals.length; i++) {
 				Instant date = Instant.parse(timeIntervals[i]);
-
-				Scanner fsc = new Scanner("MatchingService\\"+cfToken+"\\" + timeIntervals[i]);
+				String time = timeIntervals[i].toString();
+				String day = time.substring(0,10);
+				String hour = time.substring(11, 13);
+				String min = time.substring(14,16);
+				Scanner fsc = new Scanner(new File("files\\MatchingService\\"+cfToken+"\\" + day + "_" + hour+"_"+ min + ".txt"));
 				List<String> userTokens = new ArrayList<>();
 				List<Boolean> informed = new ArrayList<>();
 				
@@ -109,15 +111,20 @@ public class Database {
 			pw.println(cfToken); 	// Key should be cfToken
 			
 			//make sure the file with in MatchingService with name cfToken is there
-			sigfile = new File("MatchingSerivce\\" + cfToken);
+			sigfile = new File("files\\MatchingSerivce\\" + cfToken);
 			if (!sigfile.exists()) {
-				sigfile.mkdirs();
+				System.out.println("Make directory");
+				sigfile.mkdir();
 			}
 			List<Record> records = entry.getValue();
-			
+			boolean first = true;
 			for (Record r : records) {
+				String time = r.getTime().toString();
+				String day = time.substring(0,10);
+				String hour = time.substring(11, 13);
+				String min = time.substring(14,16);
 				//TODO not sure if printwriter will actually make the file itself, i hope so, but if there is an error here, yeah..
-				File file = new File("MatchingService\\" + cfToken + "\\" + r.getTime());
+				File file = new File("files\\MatchingService\\" + cfToken + "\\" + day + "_" + hour+"_"+ min + ".txt");
 				fpw = new PrintWriter(file);
 				//first line is the indicator for critical or not
 				String firstLine = "";
@@ -129,12 +136,16 @@ public class Database {
 				fpw.println(firstLine);
 				
 				fpw.println(getTokens(r));	// in the file set all the tokens
+				if(first ) {
+					pw.print(r.getTime());
+					first = false;
+				}
 				pw.print("_" + r.getTime());	//In the database file, write all the keys aka different timeInstances
 				
 				fpw.flush();
 				fpw.close(); // i think i need to close here 
 			}
-		
+		pw.println();
 		pw.println("#End");
 		pw.flush();
 		

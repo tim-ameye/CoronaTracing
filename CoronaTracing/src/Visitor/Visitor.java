@@ -104,6 +104,30 @@ public class Visitor implements Serializable{
 		}
 		return encrypted;
 	}
+<<<<<<< HEAD
+=======
+
+	@Override
+	public void alreadyRegistered() throws RemoteException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setGUI(guiVisitor t) throws RemoteException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public guiVisitor getGUI() throws RemoteException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+
+>>>>>>> stash
 	
 	public Visitor decrypt(PrivateKey privateKey) {
 		Visitor decrypted = new Visitor();

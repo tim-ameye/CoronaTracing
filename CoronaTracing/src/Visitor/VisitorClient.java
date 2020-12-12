@@ -1,6 +1,7 @@
 package Visitor;
 
 import java.awt.EventQueue;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -303,7 +304,11 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 
 	//TODO testen
 	public void addVisitToLog(Visit visit) throws IOException {
-		FileWriter fileWriter = new FileWriter("files\\Visitor_logs.txt", true); // Set true for append mode
+		File sigFile = new File("files\\VisitorLogs");
+		if(!sigFile.exists()) {
+			sigFile.mkdir();
+		}
+		FileWriter fileWriter = new FileWriter("files\\VisitorLogs\\"+visitor.getPhoneNumber()+".txt", true); // Set true for append mode
 		PrintWriter printWriter = new PrintWriter(fileWriter);
 		String stringToAppend = visit.getBeginTime()+"_"+visit.getRandomNumber() + "_"
 				+ visit.getUserTokenSigned() + "_" + visit.getUserTokenUnsigned()

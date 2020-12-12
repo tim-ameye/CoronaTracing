@@ -17,25 +17,20 @@ import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.UnrecoverableKeyException;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 
+import Visitor.Visitor;
 import Visitor.VisitorInterface;
 import cateringFacility.CateringInterface;
 
@@ -52,8 +47,6 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 	private MessageDigest messageDigest;
 	private Signature signature;
 	private PrivateKey privateKey;
-	private Certificate certificate;
-	private KeyFactory keyFactory;
 	private KeyStore keyStore;
 	private PublicKey matchingServicePubKey;
 	private final static String path = "files\\keystore.jks";
@@ -68,7 +61,7 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 			this.keyGenerator = KeyGenerator.getInstance("AES");
 			keyGenerator.init(256, secureRandom);
 			this.signature = Signature.getInstance("SHA512withRSA");
-			this.keyFactory = KeyFactory.getInstance("RSA");
+			KeyFactory.getInstance("RSA");
 
 			
 
@@ -79,7 +72,7 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 
 			privateKey = (PrivateKey) keyStore.getKey("registrar", password);
 
-			certificate = keyStore.getCertificate("registrar");
+			keyStore.getCertificate("registrar");
 			matchingServicePubKey = keyStore.getCertificate("matchingservice").getPublicKey();
 			signature.initSign(privateKey);
 
@@ -167,22 +160,22 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 	}
 
 	@Override
-	public boolean registerVisitor(VisitorInterface v) throws RemoteException {
+	public boolean registerVisitor(Visitor v) throws RemoteException {
 		Logger logger = Logger.getLogger("Registrar");
 		logger.info("[REGISTRAR] trying to register a visitor");
 
-		String firstName = v.getFirstName();
-		String lastName = v.getLastName();
-		String phoneNumber = v.getPhoneNumber();
+		Visitor visitor = v.decrypt(privateKey);
+		
+		String firstName = visitor.getFirstName();
+		String lastName = visitor.getLastName();
+		String phoneNumber = visitor.getPhoneNumber();
 
 		User user = db.findUser(phoneNumber);
 		if (user != null) {
 			logger.info("The visitor has already been registered!");
-			v.alreadyRegistered();
 			return false;
 		} else {
 			user = new User(firstName, lastName, phoneNumber);
-			user.setVisitorInt(v);
 			db.addVisitor(user);
 			logger.info("The visitor has been added to the registrar!");
 			try {
@@ -199,14 +192,19 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 	}
 
 	@Override
-	public boolean loginVisitor() throws RemoteException {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean loginVisitor(Visitor v) throws RemoteException {
+		Visitor visitor = v.decrypt(privateKey);
+		User user = db.findUser(visitor.getPhoneNumber());
+		if(user == null) {
+			return false;
+		}
+		return true;
 	}
 
 	@Override
-	public Token getTokensVisitor(String phoNumber, PublicKey publicKey) throws RemoteException {
-		User user = db.findUser(phoNumber);
+	public Token getTokensVisitor(Visitor v, PublicKey publicKey) throws RemoteException {
+		Visitor visitor = v.decrypt(privateKey);
+		User user = db.findUser(visitor.getPhoneNumber());
 		user.setPublicKey(publicKey);
 		SecretKey sessionKey = keyGenerator.generateKey();
 		Token token = null;
@@ -269,6 +267,14 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 		SecretKey sessionKey = keyGenerator.generateKey();
 		TokenList encrypted = tokenList.encrypt(sessionKey, matchingServicePubKey);
 		return encrypted;
+	}
+
+	@Override
+	public void InformUsers(TokenList encrypted) throws RemoteException {
+		TokenList decrypted = encrypted.decryt(privateKey);
+		ArrayList<String> possibleInfected = decrypted.getTokens(); 
+		notifyVisitors(possibleInfected);
+		
 	}
 
 }

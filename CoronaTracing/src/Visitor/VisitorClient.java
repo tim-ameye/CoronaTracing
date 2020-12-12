@@ -13,13 +13,10 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.security.InvalidKeyException;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
-import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.util.Date;
@@ -27,16 +24,11 @@ import java.util.List;
 import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Vector;
-
 import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
 import matchingServer.MatchingServiceInterface;
 import mixingProxy.Acknowledge;
@@ -66,6 +58,7 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 	private String[] currentToken;
 	private PublicKey mixingPubKey;
 	private PublicKey matchingPubKey;
+	private PublicKey registrarPubKey;
 
 	public VisitorClient() throws RemoteException, NotBoundException {
 		myRegistry = LocateRegistry.getRegistry("localhost", 55545);
@@ -83,6 +76,7 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 			keystore.load(fis, password);
 			cert = keystore.getCertificate("mixingProxy");
 			matchingPubKey = keystore.getCertificate("matchingservice").getPublicKey();
+			registrarPubKey = keystore.getCertificate("registrar").getPublicKey();
 		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -129,13 +123,18 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 		return this.ui;
 	}
 
-	public void updateUI(Vector v) throws RemoteException {
-		// TODO
-	}
-
-	public boolean register(Visitor v) throws RemoteException {
+	public boolean register(Visitor v) throws RemoteException, NoSuchAlgorithmException {
 		this.visitor = v;
-		return registerServer.registerVisitor(v);
+		SecretKey sessionKey = KeyGenerator.getInstance("AES").generateKey();
+		Visitor encrypt = v.encrypt(sessionKey, registrarPubKey);
+		return registerServer.registerVisitor(encrypt);
+	}
+	
+	public boolean login(Visitor v) throws RemoteException, NoSuchAlgorithmException {
+		this.visitor = v;
+		SecretKey sessionKey = KeyGenerator.getInstance("AES").generateKey();
+		Visitor encrypt = v.encrypt(sessionKey, registrarPubKey);
+		return registerServer.loginVisitor(encrypt);
 	}
 
 	public ArrayList<Visit> getVisits() {
@@ -148,7 +147,9 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 
 	public void getTokens() throws RemoteException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException,
 			NoSuchAlgorithmException, NoSuchPaddingException {
-		Token ans = registerServer.getTokensVisitor(visitor.getPhoneNumber(), visitor.getPublicKey());
+		SecretKey sessionKey = KeyGenerator.getInstance("AES").generateKey();
+		Visitor encrypted = visitor.encrypt(sessionKey, registrarPubKey);
+		Token ans = registerServer.getTokensVisitor(encrypted, visitor.getPublicKey());
 		this.token = ans.decrypt(visitor.getPrivateKey());
 	}
 

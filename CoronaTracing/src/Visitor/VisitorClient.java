@@ -247,7 +247,7 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 						//damn we were there at the same time interval 
 						System.out.println("[WARNING] You were in a catering facility at the same time of an infected person!");
 						System.out.println("[WARNING] sending acknowledge to to Mixing proxy so the Matching service will now we were informed!");
-						SendAcknowledge(visits.get(j).getCateringFacilityToken(), visits.get(j).getBeginTime(), visits.get(j).getUserTokenSigned());
+						sendAcknowledge(visits.get(j).getCateringFacilityToken(), visits.get(j).getBeginTime(), visits.get(j).getUserTokenSigned());
 					}
 				}
 				
@@ -258,7 +258,7 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 	}
 	
 
-	private void SendAcknowledge(String cfToken, Instant instant, String userToken) throws NoSuchAlgorithmException, RemoteException, FileNotFoundException {
+	private void sendAcknowledge(String cfToken, Instant instant, String userToken) throws NoSuchAlgorithmException, RemoteException, FileNotFoundException {
 		// TODO send necessary information to the mixing proxy, so the mixing proxy can forward it back to the matching service!
 
 		Acknowledge ack = new Acknowledge(userToken, cfToken, instant.toString());

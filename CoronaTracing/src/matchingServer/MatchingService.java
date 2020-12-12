@@ -9,6 +9,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.MessageDigest;
@@ -16,6 +17,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.Signature;
+import java.security.SignatureException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -32,6 +35,7 @@ import java.util.Map.Entry;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
+import Doctor.Infection;
 import Visitor.Visit;
 import mixingProxy.Acknowledge;
 import mixingProxy.Capsule;
@@ -54,8 +58,11 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 	private KeyGenerator keyGenerator;
 	private RegistrarInterface registrar;
 	private PublicKey registrarPubKey;
-	
-	public MatchingService() throws RemoteException, FileNotFoundException, NoSuchAlgorithmException, NotBoundException {
+	private KeyStore keyStore;
+	private PublicKey doctorPubKey;
+	private final static String path = "files\\keystore.jks";
+
+	public MatchingService() throws RemoteException, FileNotFoundException, NoSuchAlgorithmException, NotBoundException, KeyStoreException {
 		matchingService = new HashMap<>();
 		allTokens = new ArrayList<>();
 		File file = new File("files\\MatchingService");
@@ -71,11 +78,11 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 
 		
 		
+
 		this.secureRandom = new SecureRandom();
 		this.keyGenerator = KeyGenerator.getInstance("AES");
 		keyGenerator.init(256, secureRandom);
 
-		KeyStore keyStore;
 		try {
 			keyStore = KeyStore.getInstance("JKS");
 			char[] password = "AVB6589klp".toCharArray();
@@ -84,6 +91,7 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 			
 			privateKey = (PrivateKey) keyStore.getKey("matchingservice", password);
 			registrarPubKey = keyStore.getCertificate("registrar").getPublicKey();
+			doctorPubKey = keyStore.getCertificate("doctor").getPublicKey();
 		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException | UnrecoverableKeyException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -163,10 +171,36 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 
 	}
 
-	public void RecieveInfectedUserToken(List<Visit> infectedVisits) throws FileNotFoundException, NoSuchAlgorithmException {
-
+	public void recieveInfectedUserToken(Infection infection) throws FileNotFoundException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+		//TODO Step 1 decrypt this object
+		Infection inf = infection.decrypt();
+		// Step 2 check if this object is signed by a doctor
+		List<String> infectedVisits = inf.getUnsignedVisits();
+		List<String> signedInfectedVisits = inf.getSignedVisits();
+		
+		Signature sig = Signature.getInstance("SHA512withRSA");
+		sig.initVerify(doctorPubKey);
+		sig.update((infectedVisits.get(0).getBytes()));
+		
+		boolean b = sig.verify(signedInfectedVisits.get(0).getBytes());
+		if (!b) {
+			System.out.println("[Matchingservice] Token not valid, fuck!");
+			return;
+		}
+		
 		for (int i = 0; i < infectedVisits.size(); i++) {
-			Visit visit = infectedVisits.get(i);
+			String entry = infectedVisits.get(i);
+			String[] entrySplitted = entry.split("_");
+			
+			String randomNumber = entrySplitted[0];
+			String userTokenSigned = entrySplitted[1];
+			String userTokenUnsigned = entrySplitted[2];
+			String cfToken = entrySplitted[3];
+
+
+
+			Visit visit = new Visit(Integer.parseInt(randomNumber), userTokenSigned, userTokenUnsigned, cfToken);
+			//TODO add a time to that visit ey
 
 			// synchronise database
 			database.readFile();
@@ -390,6 +424,13 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 		}
 		
 		
+		
+	}
+
+	@Override
+	public void RecieveInfectedUserToken(Infection infection)
+			throws FileNotFoundException, NoSuchAlgorithmException, RemoteException {
+		// TODO Auto-generated method stub
 		
 	}
 

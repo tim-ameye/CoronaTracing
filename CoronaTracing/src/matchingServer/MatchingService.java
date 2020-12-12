@@ -32,6 +32,7 @@ import java.util.Map.Entry;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
+import Doctor.Infection;
 import Visitor.Visit;
 import mixingProxy.Acknowledge;
 import mixingProxy.Capsule;
@@ -390,6 +391,13 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 		}
 		
 		
+		
+	}
+
+	@Override
+	public void RecieveInfectedUserToken(Infection infection)
+			throws FileNotFoundException, NoSuchAlgorithmException, RemoteException {
+		// TODO Auto-generated method stub
 		
 	}
 

@@ -40,7 +40,7 @@ import registrar.RegistrarInterface;
 import registrar.Token;
 import registrar.TokenList;
 
-public class VisitorClient extends UnicastRemoteObject implements VisitorInterface {
+public class VisitorClient {
 	/**
 	 * 
 	 */
@@ -186,13 +186,39 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 		return capsule;
 	}
 
+	public class RegisteringVisits extends Thread {
+		
+		Capsule capsule;
+		
+		public RegisteringVisits(String text) {
+			capsule = makeCapsule(text);
+		}
+		
+		public void run() {
+			while(true) {
+				long current = System.currentTimeMillis();
+				long start = System.currentTimeMillis();
+				if(current > start +1800000) {
+					start = System.currentTimeMillis();
+					sendCapsule(capsule);
+					System.exit(0);
+				}
+				current = System.currentTimeMillis();
+			}
+		}
+	}
+	
+	
 	public boolean sendCapsule(Capsule capsule) {
 		try {
 			Response responseEncrypted = mixingProxyServer.registerVisit(capsule, visitor.getPublicKey());
 			String response = responseEncrypted.decrypt(visitor.getPrivateKey()).getMessage();
 			System.out.println(response);
-			if (response.equals("Accepted"))
+			if (response.equals("Accepted")) {
+				RegisteringVisits rv = new RegisteringVisits("___"+capsule.getQrToken());
+				rv.start();
 				return true;
+			}
 			else if (response.equals("Token already used")) {
 				currentToken = token.getUnusedToken();
 				capsule = new Capsule(capsule.getCurrentTimeInterval(), currentToken[0], currentToken[1],

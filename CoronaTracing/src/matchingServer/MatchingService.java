@@ -48,7 +48,11 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 	public MatchingService() throws RemoteException, FileNotFoundException {
 		matchingService = new HashMap<>();
 		allTokens = new ArrayList<>();
-		Database database = new Database("MatchingService\\Database.txt");
+		File file = new File("files\\MatchingService");
+		if(!file.exists()) {
+			file.mkdir();
+		}
+		Database database = new Database("files\\MatchingService\\Database.txt");
 		database.readFile();
 		System.out.println("[DATABASE] Initialised!");
 
@@ -304,6 +308,12 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 		}else {
 			System.out.println("[Matchingservice] Is we're here we're kinda fucked.");
 		}
+		
+	}
+
+	@Override
+	public void testConnection(String text) throws RemoteException {
+		System.out.println("Mathcing Service: " + text);
 		
 	}
 

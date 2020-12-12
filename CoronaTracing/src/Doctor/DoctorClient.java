@@ -6,6 +6,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.*;
 import matchingServer.MatchingServiceInterface;
+import registrar.RegistrarInterface;
 
 public class DoctorClient {
 	
@@ -14,10 +15,10 @@ public class DoctorClient {
 		Scanner sc = new Scanner(System.in);
 		
 		
-		Registry myRegistry = LocateRegistry.getRegistry("localhost", 5547);
+		Registry myRegistry = LocateRegistry.getRegistry("localhost", 55547);
 		server = (MatchingServiceInterface) myRegistry.lookup("MatchingService");
 		Doctor doctor = new Doctor();
-		doctor.testConnection("Test from doctorside");
+		server.testConnection("Dit is een test");
 		
 	}
 }

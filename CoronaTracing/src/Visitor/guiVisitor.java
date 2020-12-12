@@ -81,6 +81,7 @@ public class guiVisitor {
 		sentences.add("Salut!");
 		sentences.add("Gesondheid!");
 		number = (int) (Math.random()*9);
+		
 		initialize();
 	}
 
@@ -156,22 +157,7 @@ public class guiVisitor {
 		list.setModel(dlm);*/
 		
 		//TODO
-		ArrayList<Visit> visits = visitorClient.getVisits();
-		JList list = new JList(visits.toArray());
-		list.addListSelectionListener(
-			new ListSelectionListener() {
-				@Override
-				public void valueChanged(ListSelectionEvent arg0) {
-					Visit visit = (Visit) list.getSelectedValue();
-					label_beginTimeOfVisit.setText(visit.getBeginTime().toString());
-//					label_endTimeOfVisit.setText(visit.getEndTime().toString());
-					label_cf.setText(visit.getCateringFacilityToken());
-						
-				}
-			});
-		list.setBounds(10, 10, 364, 180);
-		panelVisitorLogs.add(list);
-				
+		
 		JButton btnBack = new JButton("Back");
 		btnBack.setFont(new Font("Verdana", Font.PLAIN, 20));
 		btnBack.setBounds(90, 400, 200, 50);
@@ -365,6 +351,23 @@ public class guiVisitor {
 			public void actionPerformed(ActionEvent arg0) {
 				panelVisitorLogs.setVisible(true);
 				panelScan.setVisible(false);
+				ArrayList<Visit> visits = visitorClient.getVisits();
+				JList list = new JList(visits.toArray());
+				list.addListSelectionListener(
+					new ListSelectionListener() {
+						@Override
+						public void valueChanged(ListSelectionEvent arg0) {
+							Visit visit = (Visit) list.getSelectedValue();
+							label_beginTimeOfVisit.setText(visit.getBeginTime().toString());
+//							label_endTimeOfVisit.setText(visit.getEndTime().toString());
+							label_cf.setText(visit.getCateringFacilityToken());
+								
+						}
+					});
+				list.setBounds(10, 10, 364, 180);
+				panelVisitorLogs.add(list);
+				list.updateUI();
+						
 			}
 		});
 		btnViewLogs.setFont(new Font("Verdana", Font.PLAIN, 20));
@@ -383,17 +386,6 @@ public class guiVisitor {
 		lblCheers.setBounds(0, 180, 384, 100);
 		panelSucces.add(lblCheers);
 		
-		JButton btnScanOtherQrcode = new JButton("Scan other QR-code");
-		btnScanOtherQrcode.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				panelScan.setVisible(true);
-				panelSucces.setVisible(false);
-			}
-		});
-		btnScanOtherQrcode.setFont(new Font("Verdana", Font.PLAIN, 20));
-		btnScanOtherQrcode.setBounds(70, 300, 250, 50);
-		panelSucces.add(btnScanOtherQrcode);
-		
 		JButton btnEndVisit = new JButton("End visit!");
 		btnEndVisit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -403,7 +395,7 @@ public class guiVisitor {
 			}
 		});
 		btnEndVisit.setFont(new Font("Verdana", Font.PLAIN, 20));
-		btnEndVisit.setBounds(70, 360, 250, 50);
+		btnEndVisit.setBounds(70, 330, 250, 50);
 		panelSucces.add(btnEndVisit);
 		
 	}

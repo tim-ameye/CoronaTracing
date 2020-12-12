@@ -102,9 +102,10 @@ public class Database {
 			throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
 		readFile();
 		for (CateringFacility cf : facilities) {
-			if (cf.getBusinessNumber().toString() == (business) && cf.getPhoneNumber().toString() == (phoneNumber))
+			if (cf.getBusinessNumber().toString() == (business) && cf.getPhoneNumber().toString() == (phoneNumber)) {
 				System.out.println("[DATABASE] Found it!");
-			return cf;
+				return cf;
+			}
 		}
 		System.out.println("[DATABASE] Couldn't find current facility.");
 		return null;

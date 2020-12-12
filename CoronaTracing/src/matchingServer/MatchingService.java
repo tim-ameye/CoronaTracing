@@ -219,7 +219,7 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 					Record record = null;
 					boolean found = false;
 					for (int j = 0; j < records.size(); j++) {
-						if (records.get(i).getTime().equals(visit.getInstant())) {
+						if (records.get(i).getTime().equals(visit.getBeginTime())) {
 							found = true;
 							record = records.get(i);
 						}
@@ -233,12 +233,12 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 							}
 						}
 						// adding this record to the is critical
-						String criticalRecord = currentHashString + "_" +visit.getInstant().toString();
+						String criticalRecord = currentHashString + "_" +visit.getBeginTime().toString();
 						criticalRecordsOfToday.add(criticalRecord);
 						
 						// Starting countdown timer that will check if users are informed or not.
 						System.out.println("start countdown");
-						new Countdown(1296000, this, visit.getCateringFacilityToken(), visit.getInstant());	
+						new Countdown(1296000, this, visit.getCateringFacilityToken(), visit.getBeginTime());	
 						//give record so we can see how the record is doing 
 						System.out.println("passed it");
 						

@@ -19,7 +19,8 @@ public class Countdown {
   MatchingService mf;
   String cfToken;
   Instant instant;
- 
+  private volatile boolean exit = false;
+
   public Countdown(int seconds, MatchingService mf, String cfToken, Instant instant) {
     timer = new Timer();
     this.mf = mf;
@@ -30,10 +31,12 @@ public class Countdown {
   }
 
  
-
+//TODO not sure if this works, if things don't work yeah..
 class RemindTask extends TimerTask {
     public void run() {
-    		
+    	while (!exit) {
+			
+			
     	try {
 			StartContactingRegistrar(mf, cfToken, instant);
 		} catch (FileNotFoundException e) {
@@ -48,8 +51,10 @@ class RemindTask extends TimerTask {
 		}
     	
     	//timer.cancel(); //Not necessary because we call System.exit
-      System.exit(0); //Stops the AWT thread (and everything else)
+    	exit = true;
+    	}
     }
+
   }
 
 	public void StartContactingRegistrar(MatchingService mf, String cfToken, Instant instant) throws FileNotFoundException, RemoteException, NotBoundException {

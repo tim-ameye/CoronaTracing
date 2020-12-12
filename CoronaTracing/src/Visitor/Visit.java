@@ -9,8 +9,6 @@ public class Visit {
 	private String userTokenUnsigned;
 	private String businessNumber;
 	private Instant beginTime;
-	private Instant endTime;
-	private Instant instant;
 
 	public Visit() {
 		this.randomNumber = 0;
@@ -22,20 +20,13 @@ public class Visit {
 		this.cateringFacilityToken = cateringFacility;
 		this.userTokenSigned = signed;
 		this.userTokenUnsigned = usigned;
-		this.instant = instant;
 	}
 
 	public int getRandomNumber() {
 		return randomNumber;
 	}
 
-	public Instant getInstant() {
-		return instant;
-	}
 
-	public void setInstant(Instant instant) {
-		this.instant = instant;
-	}
 
 	public void setRandomNumber(int randomNumber) {
 		this.randomNumber = randomNumber;
@@ -81,21 +72,13 @@ public class Visit {
 		this.beginTime = beginTime;
 	}
 
-	public Instant getEndTime() {
-		return endTime;
-	}
-
-	public void setEndTime(Instant endTime) {
-		this.endTime = endTime;
-	}
-
 	public String toString() {
 		return "Visit " + this.randomNumber + " Business number: " + this.businessNumber;
 	}
 
 	public String toExtendedString() {
 		return this.randomNumber + "_" + this.userTokenSigned + "_" + this.userTokenUnsigned + "_"
-				+ this.cateringFacilityToken + "_" + this.beginTime;
+				+ this.cateringFacilityToken + "_" + this.beginTime + "_" +this.businessNumber;
 	}
 
 }

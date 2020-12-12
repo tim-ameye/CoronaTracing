@@ -206,7 +206,7 @@ public class VisitorClient {
 				long start = System.currentTimeMillis();
 				if(current > start +1800000) {
 					start = System.currentTimeMillis();
-					sendCapsule(capsule);
+					sendCapsule(capsule,"");
 					exit = true;
 				}
 				current = System.currentTimeMillis();
@@ -220,7 +220,7 @@ public class VisitorClient {
 	}
 	
 	
-	public boolean sendCapsule(Capsule capsule) {
+	public boolean sendCapsule(Capsule capsule, String text) {
 		try {
 			Response responseEncrypted = mixingProxyServer.registerVisit(capsule, visitor.getPublicKey());
 			String response = responseEncrypted.decrypt(visitor.getPrivateKey()).getMessage();
@@ -231,10 +231,15 @@ public class VisitorClient {
 				return true;
 			}
 			else if (response.equals("Token already used")) {
+				//TODO Fix the error, the capsule of which we want to get data is encrypted so we can't get data from it
 				currentToken = token.getUnusedToken();
-				capsule = new Capsule(capsule.getCurrentTimeInterval(), currentToken[0], currentToken[1],
-						capsule.getQrToken());
-				if (sendCapsule(capsule)) 
+				if (text.equals("")) {
+					System.out.println("Yeah this is not okay ~victor");
+				}
+				capsule = makeCapsule(text);
+				//capsule = new Capsule(capsule.getCurrentTimeInterval(), currentToken[0], currentToken[1],
+				//		capsule.getQrToken());
+				if (sendCapsule(capsule, "")) 
 					return true;
 			} else if (response.equals("Token not valid")) {
 				System.out.println("You have submitted an invalid token. Please do not try to hack the system!");
@@ -246,7 +251,7 @@ public class VisitorClient {
 				currentToken = token.getUnusedToken();
 				capsule = new Capsule(capsule.getCurrentTimeInterval(), currentToken[0], currentToken[1],
 						capsule.getQrToken());
-				if (sendCapsule(capsule))
+				if (sendCapsule(capsule, ""))
 					return true;
 			} else if (response.equals("")) {
 				System.out.println("An error occured.");
@@ -323,7 +328,7 @@ public class VisitorClient {
 		return hours;
 	}
 
-	public void addVisit() {// TODO controleren
+	public void addVisit() throws IOException {// TODO controleren
 		String[] arguments = qrCode.split("_");
 		Visit visit = new Visit(Integer.parseInt(arguments[0]), currentToken[0], currentToken[1], arguments[3]); // randomnummmber,
 																													// unique
@@ -335,27 +340,28 @@ public class VisitorClient {
 		Instant day = roundTime(date);
 		visit.setBeginTime(day);
 		visits.add(visit);
-		try {
-			addVisitToLog(visit);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		addVisitToLog(visit);
 	}
 
 	//TODO testen
-	public void addVisitToLog(Visit visit) throws IOException {
+	public void addVisitToLog(Visit visit)  {
 		File sigFile = new File("files\\VisitorLogs");
 		if(!sigFile.exists()) {
 			sigFile.mkdir();
 		}
-		FileWriter fileWriter = new FileWriter("files\\VisitorLogs\\"+visitor.getPhoneNumber()+".txt", true); // Set true for append mode
-		PrintWriter printWriter = new PrintWriter(fileWriter);
-		String stringToAppend = visit.getBeginTime()+"_"+visit.getRandomNumber() + "_"
-				+ visit.getUserTokenSigned() + "_" + visit.getUserTokenUnsigned()
-				+ "_" + visit.getCateringFacilityToken();
-		printWriter.println(stringToAppend);
-		printWriter.close();
+		FileWriter fileWriter;
+		try {
+			fileWriter = new FileWriter("files\\VisitorLogs\\"+visitor.getPhoneNumber()+".txt", true);
+			PrintWriter printWriter = new PrintWriter(fileWriter);
+			String stringToAppend = visit.getBeginTime()+"_"+visit.getRandomNumber() + "_"
+					+ visit.getUserTokenSigned() + "_" + visit.getUserTokenUnsigned() + "_" + visit.getBusinessNumber()
+					+ "_" + visit.getCateringFacilityToken();
+			printWriter.println(stringToAppend);
+			printWriter.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} // Set true for append mode
+		
 	}
 
 	public void getVisitsFromLogs() {
@@ -383,9 +389,11 @@ public class VisitorClient {
 				String userTokenSigned = splittedLine[2];
 				String userTokenUnsigned = splittedLine[3];
 				String cfToken = splittedLine[4];
-				
+				String businessNumber = splittedLine[5];
+						
 				Visit temp = new Visit(Integer.parseInt(randomNumber), userTokenSigned, userTokenUnsigned, cfToken);
 				temp.setBeginTime(Instant.parse(beginTime));
+				temp.setBusinessNumber(businessNumber);
 				visits.add(temp);				
 			}
 		}else {

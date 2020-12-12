@@ -20,6 +20,7 @@ import javax.crypto.NoSuchPaddingException;
 import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.rmi.RemoteException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -163,7 +164,7 @@ public class guiVisitor {
 				public void valueChanged(ListSelectionEvent arg0) {
 					Visit visit = (Visit) list.getSelectedValue();
 					label_beginTimeOfVisit.setText(visit.getBeginTime().toString());
-					label_endTimeOfVisit.setText(visit.getEndTime().toString());
+//					label_endTimeOfVisit.setText(visit.getEndTime().toString());
 					label_cf.setText(visit.getCateringFacilityToken());
 						
 				}
@@ -328,9 +329,14 @@ public class guiVisitor {
 			public void actionPerformed(ActionEvent arg0) {
 				//TODO controleren of die wel goed wordt gegenereerd
 				Capsule capsule = visitorClient.makeCapsule(textField_QRinputstring.getText());
-				boolean b = visitorClient.sendCapsule(capsule);
+				boolean b = visitorClient.sendCapsule(capsule, textField_QRinputstring.getText());
 				if(b) {
-					visitorClient.addVisit();
+					try {
+						visitorClient.addVisit();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					panelSucces.setVisible(true);
 					panelScan.setVisible(false);
 				} else {

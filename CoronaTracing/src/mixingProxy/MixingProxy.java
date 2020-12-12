@@ -160,17 +160,6 @@ public class MixingProxy extends UnicastRemoteObject implements MixingProxyInter
 		}
 	}
 
-	@Override
-	public void setGui(GuiMixingProxy gmp) throws RemoteException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public GuiMixingProxy getGuiMixingProxy() throws RemoteException {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 	@Override
 	public void sendAndRecieveAcknowledge(Acknowledge ack) throws RemoteException, FileNotFoundException {

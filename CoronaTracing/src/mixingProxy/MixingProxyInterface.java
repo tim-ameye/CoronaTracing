@@ -10,6 +10,4 @@ public interface MixingProxyInterface extends Remote {
 	
 	public void sendAndRecieveAcknowledge(Acknowledge ack) throws RemoteException, FileNotFoundException;
 	
-	public void setGui(GuiMixingProxy gmp) throws RemoteException;
-	public GuiMixingProxy getGuiMixingProxy() throws RemoteException;
 }

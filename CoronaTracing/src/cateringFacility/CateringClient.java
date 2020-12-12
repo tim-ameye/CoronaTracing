@@ -28,7 +28,7 @@ public class CateringClient {
 	 * 
 	 */
 	
-	private Instant today;
+	private static Instant today;
 	private int randomInteger;
 
 	public static void main(String[] args)
@@ -69,7 +69,7 @@ public class CateringClient {
 		CateringFacility temp = db.findCateringFacility(cateringFacility.getBusinessNumber(),
 				cateringFacility.getPhoneNumber());
 
-		today = new Date(System.currentTimeMillis())
+		today = (new Date(System.currentTimeMillis())).toInstant().truncatedTo(ChronoUnit.DAYS);
 		
 		if (temp != null) {
 			System.out.println("[DATABASE] Already in database, checking if tokens are up to date");

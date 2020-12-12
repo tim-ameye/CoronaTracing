@@ -239,7 +239,7 @@ public class guiVisitor {
 					visitor = new Visitor(textField_firstName.getText(),textField_lastName.getText(), textField_phoneNumber.getText());
 					panelScan.setVisible(true);
 					panelLogin.setVisible(false);
-					visitorClient.setVisitor(visitor);
+					visitorClient.setVisitor(visitor);	//TODO make a call to visitorclient which will fetch all infected cfTokens
 					visitorClient.getTokens();
 					//login functie oproepen vd registrar
 				} catch (RemoteException e) {

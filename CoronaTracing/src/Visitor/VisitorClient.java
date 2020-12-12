@@ -216,7 +216,7 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 		return hours;
 	}
 
-	public void addVisit() throws IOException {// TODO controleren
+	public void addVisit() {// TODO controleren
 		String[] arguments = qrCode.split("_");
 		Visit visit = new Visit(Integer.parseInt(arguments[0]), currentToken[0], currentToken[1], arguments[2]); // randomnummmber,
 																													// unique
@@ -228,7 +228,12 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 		Instant day = roundTime(date);
 		visit.setBeginTime(day);
 		visits.add(visit);
-		addVisitToLog(visit);
+		try {
+			addVisitToLog(visit);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	//TODO testen

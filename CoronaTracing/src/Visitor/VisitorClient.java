@@ -66,6 +66,7 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 	private String[] currentToken;
 	private PublicKey mixingPubKey;
 	private PublicKey matchingPubKey;
+	private PublicKey registrarPubKey;
 
 	public VisitorClient() throws RemoteException, NotBoundException {
 		myRegistry = LocateRegistry.getRegistry("localhost", 55545);
@@ -83,6 +84,7 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 			keystore.load(fis, password);
 			cert = keystore.getCertificate("mixingProxy");
 			matchingPubKey = keystore.getCertificate("matchingservice").getPublicKey();
+			registrarPubKey = keystore.getCertificate("registrar").getPublicKey();
 		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -135,7 +137,16 @@ public class VisitorClient extends UnicastRemoteObject implements VisitorInterfa
 
 	public boolean register(Visitor v) throws RemoteException {
 		this.visitor = v;
-		return registerServer.registerVisitor(v);
+		SecretKey sessionKey = KeyGenerator.getInstance("AES").generateKey();
+		Visitor encrypt = v.encrypt(sessionKey, registrarPubKey);
+		return registerServer.registerVisitor(encrypt);
+	}
+	
+	public boolean login(Visitor v) {
+		this.visitor = v;
+		SecretKey sessionKey = KeyGenerator.getInstance("AES").generateKey();
+		Visitor encrypt = v.encrypt(sessionKey, registrarPubKey);
+		return registerServer.loginVisitor(encrypt);
 	}
 
 	public ArrayList<Visit> getVisits() {

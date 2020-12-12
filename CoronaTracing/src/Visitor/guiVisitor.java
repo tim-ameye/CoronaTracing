@@ -1,10 +1,8 @@
 package Visitor;
 
-import java.awt.EventQueue;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import javax.swing.JLabel;
 import java.awt.Font;
@@ -19,14 +17,9 @@ import javax.swing.JButton;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.swing.DefaultListModel;
-import javax.swing.ImageIcon;
 import java.awt.Color;
 import java.awt.event.ActionListener;
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -35,11 +28,6 @@ import javax.swing.JList;
 
 public class guiVisitor {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -921166446637910407L;
-	
 	private JFrame frame;
 	private JTextField textField_firstName;
 	private JTextField textField_lastName;
@@ -237,11 +225,13 @@ public class guiVisitor {
 				//TODO send gegevens naar een databank
 				try {
 					visitor = new Visitor(textField_firstName.getText(),textField_lastName.getText(), textField_phoneNumber.getText());
-					panelScan.setVisible(true);
-					panelLogin.setVisible(false);
-					visitorClient.setVisitor(visitor);
-					visitorClient.getTokens();
-					//login functie oproepen vd registrar
+					if(visitorClient.login(visitor)) {
+						panelScan.setVisible(true);
+						panelLogin.setVisible(false);
+						visitorClient.setVisitor(visitor);
+						visitorClient.getTokens();
+					}
+					//TODO label met please register
 				} catch (RemoteException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -276,14 +266,27 @@ public class guiVisitor {
 					visitor = new Visitor(textField_firstName.getText(),textField_lastName.getText(), textField_phoneNumber.getText());
 					if(!visitorClient.register(visitor)) {
 						System.out.println("Please login.");
+						//TODO label met please login
 					} else {
-						//visitorClient.getTokens();
+						visitorClient.getTokens();
 						panelScan.setVisible(true);
 						panelLogin.setVisible(false);
 					}
 					
 					//register functie oproepen vd registrar
 				} catch (RemoteException | NoSuchAlgorithmException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (InvalidKeyException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalBlockSizeException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (BadPaddingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (NoSuchPaddingException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}

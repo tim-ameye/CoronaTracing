@@ -49,6 +49,7 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 	private PrivateKey privateKey;
 	private KeyStore keyStore;
 	private PublicKey matchingServicePubKey;
+	private PublicKey registrarPubKey;
 	private final static String path = "files\\keystore.jks";
 
 	protected Registrar(Database db) throws RemoteException {
@@ -59,7 +60,6 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 			this.messageDigest = MessageDigest.getInstance("SHA-256");
 			this.secretKeyFactory = SecretKeyFactory.getInstance("pbkdf2withhmacsha256");
 			this.keyGenerator = KeyGenerator.getInstance("AES");
-			keyGenerator.init(256, secureRandom);
 			this.signature = Signature.getInstance("SHA512withRSA");
 			KeyFactory.getInstance("RSA");
 
@@ -74,6 +74,7 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 
 			keyStore.getCertificate("registrar");
 			matchingServicePubKey = keyStore.getCertificate("matchingservice").getPublicKey();
+			registrarPubKey = keyStore.getCertificate("registrar").getPublicKey();
 			signature.initSign(privateKey);
 
 		} catch (NoSuchAlgorithmException e) {
@@ -202,18 +203,21 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 	}
 
 	@Override
-	public Token getTokensVisitor(Visitor v, PublicKey publicKey) throws RemoteException {
+	public Token getTokensVisitor(Visitor v, PublicKey pubKey) throws RemoteException {
 		Visitor visitor = v.decrypt(privateKey);
 		User user = db.findUser(visitor.getPhoneNumber());
-		user.setPublicKey(publicKey);
-		SecretKey sessionKey = keyGenerator.generateKey();
+		user.setPublicKey(visitor.getPublicKey());
+		Token encrypted = null;
 		Token token = null;
 		try {
+			SecretKey sessionKey = KeyGenerator.getInstance("AES").generateKey();
 			token = user.getTokensToday();
 			if(token == null) {
 				user.generateTokenSet(secureRandom, signature);
 				token = user.getTokensToday();
 			}
+			encrypted = token.encrypt(sessionKey, pubKey);
+			//Token decrypted = encrypted.decrypt(privateKey);
 		} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException
 				| BadPaddingException e) {
 			// TODO Auto-generated catch block
@@ -222,7 +226,7 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		Token encrypted = token.encrypt(sessionKey, publicKey);
+		
 		return encrypted;
 	}
 

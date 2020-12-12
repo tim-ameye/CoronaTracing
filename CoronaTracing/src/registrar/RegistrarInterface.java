@@ -20,7 +20,7 @@ public interface RegistrarInterface extends Remote {
 	
 	public boolean registerVisitor(Visitor v) throws RemoteException;				//TODO User-interface opvragen
 	public boolean loginVisitor(Visitor v) throws RemoteException;
-	public Token getTokensVisitor(Visitor v, PublicKey publicKey) throws RemoteException;
+	public Token getTokensVisitor(Visitor v, PublicKey pubKey) throws RemoteException;
 	
 	public void notifyVisitors(ArrayList<String> infectedTokens) throws RemoteException;
 	public void notifyFacility(ArrayList<byte[]> infectedHahses) throws RemoteException;

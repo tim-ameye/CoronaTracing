@@ -5,14 +5,11 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
 import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
+import Visitor.Visitor;
 import Visitor.VisitorInterface;
 
 public class User {
@@ -31,6 +28,13 @@ public class User {
 		this.surname = surname;
 		this.phoneNumber = phonNumber;
 		this.tokens = new ArrayList<>();
+	}
+	
+	public User(Visitor visitor) {
+		this.name = visitor.getFirstName();
+		this.surname = visitor.getLastName();
+		this.phoneNumber = visitor.getPhoneNumber();
+		this.publicKey = visitor.getPublicKey();
 	}
 
 	public String getName() {

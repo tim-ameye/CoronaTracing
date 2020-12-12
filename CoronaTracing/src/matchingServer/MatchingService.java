@@ -173,7 +173,7 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 
 	public void recieveInfectedUserToken(Infection infection) throws FileNotFoundException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
 		//TODO Step 1 decrypt this object
-		Infection inf = infection.decrypt();
+		Infection inf = infection.decrypt(privateKey);
 		// Step 2 check if this object is signed by a doctor
 		List<String> infectedVisits = inf.getUnsignedVisits();
 		List<String> signedInfectedVisits = inf.getSignedVisits();
@@ -196,10 +196,11 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 			String userTokenSigned = entrySplitted[1];
 			String userTokenUnsigned = entrySplitted[2];
 			String cfToken = entrySplitted[3];
-
+			String instant = entrySplitted[4];
 
 
 			Visit visit = new Visit(Integer.parseInt(randomNumber), userTokenSigned, userTokenUnsigned, cfToken);
+			visit.setBeginTime(Instant.parse(instant));
 			//TODO add a time to that visit ey
 
 			// synchronise database
@@ -426,14 +427,6 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 		
 		
 	}
-
-	@Override
-	public void RecieveInfectedUserToken(Infection infection)
-			throws FileNotFoundException, NoSuchAlgorithmException, RemoteException {
-		// TODO Auto-generated method stub
-		
-	}
-
 
 
 

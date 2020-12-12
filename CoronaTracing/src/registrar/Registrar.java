@@ -20,6 +20,7 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.crypto.BadPaddingException;
@@ -260,6 +261,14 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 		SecretKey sessionKey = keyGenerator.generateKey();
 		TokenList encrypted = tokenList.encrypt(sessionKey, matchingServicePubKey);
 		return encrypted;
+	}
+
+	@Override
+	public void InformUsers(TokenList encrypted) throws RemoteException {
+		TokenList decrypted = encrypted.decryt(privateKey);
+		ArrayList<String> possibleInfected = decrypted.getTokens(); 
+		notifyVisitors(possibleInfected);
+		
 	}
 
 }

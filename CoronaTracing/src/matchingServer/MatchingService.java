@@ -109,11 +109,11 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 		String currentDayString = currentDay.toString().substring(0, 10);
 
 		// Step 1 decrypt the capsule
-		Capsule capluse = capsule.Decrypt(privateKey);
+		Capsule cap = capsule.Decrypt(privateKey);
 		// Step 2 get the information out of the capsule
-		String userToken = capsule.getUserTokenSigned();
-		String cfToken = capsule.getQrToken();
-		Instant capsuleTimeInterval = capsule.getCurrentTimeInterval();
+		String userToken = cap.getUserTokenSigned();
+		String cfToken = cap.getQrToken();
+		Instant capsuleTimeInterval = cap.getCurrentTimeInterval();
 
 		System.out.println("[MATCHINGSERVICE] recieving capusle with usertoken " + userToken + " and qrToken " + cfToken
 				+ " and time interval " + capsuleTimeInterval);

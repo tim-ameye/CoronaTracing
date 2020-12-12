@@ -2,7 +2,6 @@ package registrar;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.security.PublicKey;
-import java.util.ArrayList;
 
 import Visitor.Visitor;
 import cateringFacility.CateringFacility;
@@ -19,8 +18,6 @@ public interface RegistrarInterface extends Remote {
 	public Response loginVisitor(Visitor v, PublicKey pubKey) throws RemoteException;
 	public Token getTokensVisitor(Visitor v, PublicKey pubKey) throws RemoteException;
 	
-	public void notifyVisitors(ArrayList<String> infectedTokens) throws RemoteException;
-	public void notifyFacility(ArrayList<byte[]> infectedHahses) throws RemoteException;
 	public TokenList getCfHashesFromToday() throws RemoteException;
 	public void InformUsers(TokenList encrypted) throws RemoteException;
 }

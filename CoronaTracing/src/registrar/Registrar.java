@@ -249,8 +249,7 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 		return encrypted;
 	}
 
-	@Override
-	public void notifyVisitors(ArrayList<String> infectedTokens) throws RemoteException {
+	public void notifyVisitors(ArrayList<String> infectedTokens) {
 		ArrayList<User> infectedUsers = new ArrayList<>();
 		for(String infected: infectedTokens) {
 			User infectedUser = db.findUserWithToken(infected);
@@ -262,12 +261,6 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 		for(User user: infectedUsers) {
 			System.out.println(user.getName() + " needs to be contacted his/her phonenumber is " + user.getPhoneNumber() + ".");
 		}
-	}
-
-	@Override
-	public void notifyFacility(ArrayList<byte[]> infectedHahses) throws RemoteException {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override

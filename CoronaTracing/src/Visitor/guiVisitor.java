@@ -26,10 +26,15 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.awt.event.ActionEvent;
 import javax.swing.JList;
+import javax.swing.JPopupMenu;
+import java.awt.Component;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class guiVisitor {
 
 	private JFrame frame;
+	private JLabel label_errorMessage;
 	private JTextField textField_firstName;
 	private JTextField textField_lastName;
 	private JTextField textField_phoneNumber;
@@ -220,6 +225,13 @@ public class guiVisitor {
 		textField_phoneNumber.setBounds(125, 260, 150, 30);
 		panelLogin.add(textField_phoneNumber);
 		
+		JLabel label_errorLogin = new JLabel(" ");
+		label_errorLogin.setForeground(Color.RED);
+		label_errorLogin.setHorizontalAlignment(SwingConstants.CENTER);
+		label_errorLogin.setFont(new Font("Verdana", Font.PLAIN, 18));
+		label_errorLogin.setBounds(0, 295, 384, 30);
+		panelLogin.add(label_errorLogin);
+		
 		JButton btnLogin = new JButton("Login");
 		btnLogin.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -230,16 +242,14 @@ public class guiVisitor {
 						panelScan.setVisible(true);
 						panelLogin.setVisible(false);
 						visitorClient.setVisitor(visitor);
+						visitorClient.getVisitsFromLogs();	// check if he already had a history
+						visitorClient.getInfectedLogs();
 						visitorClient.getTokens();
+					}else {
+						label_errorLogin.setText("User not found, please retry or sign up");
 					}
-					//TODO label met please register
-					panelScan.setVisible(true);
-					panelLogin.setVisible(false);
-					visitorClient.setVisitor(visitor);	//TODO make a call to visitorclient which will fetch all infected cfTokens
-					visitorClient.getVisitsFromLogs();	// check if he already had a history
-					visitorClient.getInfectedLogs(); // check if one of our logs was in an infected record 
-					visitorClient.getTokens();
-					//login functie oproepen vd registrar
+					
+					
 				} catch (RemoteException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -276,8 +286,7 @@ public class guiVisitor {
 				try {
 					visitor = new Visitor(textField_firstName.getText(),textField_lastName.getText(), textField_phoneNumber.getText());
 					if(!visitorClient.register(visitor)) {
-						System.out.println("Please login.");
-						//TODO label met please login
+						label_errorLogin.setText("User already exists, please login!");
 					} else {
 						visitorClient.getTokens();
 						panelScan.setVisible(true);
@@ -307,7 +316,7 @@ public class guiVisitor {
 		btnSignUp.setBounds(100, 380, 200, 40);
 		panelLogin.add(btnSignUp);
 		
-		JLabel label_errorMessage = new JLabel(" ");
+		label_errorMessage = new JLabel(" ");
 		label_errorMessage.setForeground(Color.RED);
 		label_errorMessage.setHorizontalAlignment(SwingConstants.CENTER);
 		label_errorMessage.setFont(new Font("Verdana", Font.PLAIN, 18));
@@ -376,12 +385,29 @@ public class guiVisitor {
 			}
 		});
 		btnScanOtherQrcode.setFont(new Font("Verdana", Font.PLAIN, 20));
-		btnScanOtherQrcode.setBounds(70, 350, 250, 50);
+		btnScanOtherQrcode.setBounds(70, 300, 250, 50);
 		panelSucces.add(btnScanOtherQrcode);
+		
+		JButton btnEndVisit = new JButton("End visit!");
+		btnEndVisit.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				panelScan.setVisible(true);
+				panelSucces.setVisible(false);
+				visitorClient.stopRv();
+			}
+		});
+		btnEndVisit.setFont(new Font("Verdana", Font.PLAIN, 20));
+		btnEndVisit.setBounds(70, 360, 250, 50);
+		panelSucces.add(btnEndVisit);
 		
 	}
 	
 	public void setVisible(boolean b) {
 		frame.setVisible(b);
 	}
+
+	public void informUser() {
+		label_errorMessage.setText("You have been in contact with an infected person!");	
+	}
+	
 }

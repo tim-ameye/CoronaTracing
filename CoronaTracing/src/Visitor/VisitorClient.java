@@ -60,6 +60,7 @@ public class VisitorClient {
 	private PublicKey mixingPubKey;
 	private PublicKey matchingPubKey;
 	private PublicKey registrarPubKey;
+	private RegisteringVisits rv;
 
 	public VisitorClient() throws RemoteException, NotBoundException {
 		myRegistry = LocateRegistry.getRegistry("localhost", 55545);
@@ -193,9 +194,10 @@ public class VisitorClient {
 		public RegisteringVisits(String text) {
 			capsule = makeCapsule(text);
 		}
-		
+		private volatile boolean exit = false;
+
 		public void run() {
-			while(true) {
+			while(!exit) {
 				long current = System.currentTimeMillis();
 				long start = System.currentTimeMillis();
 				if(current > start +1800000) {
@@ -206,6 +208,11 @@ public class VisitorClient {
 				current = System.currentTimeMillis();
 			}
 		}
+		
+		public void stopThread() {
+			exit = true;
+		}
+			
 	}
 	
 	
@@ -215,7 +222,7 @@ public class VisitorClient {
 			String response = responseEncrypted.decrypt(visitor.getPrivateKey()).getMessage();
 			System.out.println(response);
 			if (response.equals("Accepted")) {
-				RegisteringVisits rv = new RegisteringVisits("___"+capsule.getQrToken());
+				rv = new RegisteringVisits(qrCode);
 				rv.start();
 				return true;
 			}
@@ -223,7 +230,7 @@ public class VisitorClient {
 				currentToken = token.getUnusedToken();
 				capsule = new Capsule(capsule.getCurrentTimeInterval(), currentToken[0], currentToken[1],
 						capsule.getQrToken());
-				if (sendCapsule(capsule))
+				if (sendCapsule(capsule)) 
 					return true;
 			} else if (response.equals("Token not valid")) {
 				System.out.println("You have submitted an invalid token. Please do not try to hack the system!");
@@ -273,7 +280,9 @@ public class VisitorClient {
 						//damn we were there at the same time interval 
 						System.out.println("[WARNING] You were in a catering facility at the same time of an infected person!");
 						System.out.println("[WARNING] sending acknowledge to to Mixing proxy so the Matching service will now we were informed!");
+						ui.informUser();
 						sendAcknowledge(visits.get(j).getCateringFacilityToken(), visits.get(j).getBeginTime(), visits.get(j).getUserTokenSigned());
+						
 					}
 				}
 				
@@ -347,12 +356,21 @@ public class VisitorClient {
 
 	public void getVisitsFromLogs() {
 		
-		File tmpDir = new File("files\\VisitorLogs\\"+visitor.getPhoneNumber()+".txt");
+		File tmpDir = new File("files\\VisitorLogs\\");
+		if(!tmpDir.exists()) {
+			tmpDir.mkdir();
+		}
 		boolean exists = tmpDir.exists();
 		
 		if (exists) {
 			//this file is already here, so this is a user that already exists
-			Scanner sc = new Scanner("files\\\\VisitorLogs\\"+visitor.getPhoneNumber()+".txt\"");
+			Scanner sc = null;
+			try {
+				sc = new Scanner(new File("files\\VisitorLogs\\"+visitor.getPhoneNumber()+".txt"));
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			while (sc.hasNextLine()) {
 				String line =  sc.nextLine();
 				String[] splittedLine = line.split("_");
@@ -371,6 +389,11 @@ public class VisitorClient {
 			return;
 		}
 
+		
+	}
+
+	public void stopRv() {
+		rv.stopThread();
 		
 	}
 

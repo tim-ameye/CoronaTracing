@@ -73,7 +73,7 @@ public class Visit {
 	}
 
 	public String toString() {
-		return "Visit " + this.randomNumber + " Business number: " + this.businessNumber;
+		return "Visit " + this.randomNumber + " Business number: " + this.cateringFacilityToken;
 	}
 
 	public String toExtendedString() {

@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.rmi.RemoteException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.awt.event.ActionEvent;
 import javax.swing.JList;
@@ -142,7 +144,7 @@ public class guiVisitor {
 		
 		JLabel label_cf = new JLabel(" ");
 		label_cf.setHorizontalAlignment(SwingConstants.CENTER);
-		label_cf.setFont(new Font("Verdana", Font.PLAIN, 16));
+		label_cf.setFont(new Font("Verdana", Font.PLAIN, 12));
 		label_cf.setBounds(0, 360, 384, 30);
 		panelVisitorLogs.add(label_cf);
 		
@@ -150,13 +152,7 @@ public class guiVisitor {
 		label_endTimeOfVisit.setHorizontalAlignment(SwingConstants.CENTER);
 		label_endTimeOfVisit.setFont(new Font("Verdana", Font.PLAIN, 16));
 		label_endTimeOfVisit.setBounds(0, 290, 384, 30);
-		/*DefaultListModel<Visit> dlm = new DefaultListModel<>();
-		for(Visit visit : visitorClient.getVisits()) {
-			dlm.addElement(visit);
-		}
-		list.setModel(dlm);*/
 		
-		//TODO
 		
 		JButton btnBack = new JButton("Back");
 		btnBack.setFont(new Font("Verdana", Font.PLAIN, 20));
@@ -360,7 +356,9 @@ public class guiVisitor {
 							Visit visit = (Visit) list.getSelectedValue();
 							label_beginTimeOfVisit.setText(visit.getBeginTime().toString());
 //							label_endTimeOfVisit.setText(visit.getEndTime().toString());
-							label_cf.setText(visit.getCateringFacilityToken());
+							label_cf.setText(visit.getBusinessNumber());
+							Instant endTime = visit.getBeginTime().plus(30, ChronoUnit.MINUTES);
+							label_endTimeOfVisit.setText(endTime.toString());
 								
 						}
 					});

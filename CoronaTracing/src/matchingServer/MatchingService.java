@@ -181,7 +181,7 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 		
 		boolean b = sig.verify(Base64.getDecoder().decode(signedInfectedVisits.get(0)));
 		if (!b) {
-			System.out.println("[Matchingservice] Token not valid, fuck!");
+			System.out.println("[Matchingservice] Token not valid!");
 			return;
 		}
 		
@@ -258,13 +258,13 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 						
 					} else {
 						System.out.println(
-								"[Matchingservice] No records for this catering facility with the corresponding time, strange...");
+								"[Matchingservice] No records for this catering facility with the corresponding time.");
 					}
 				} else {
-					System.out.println("[Matchingservice] No records for this catering facility, strange...");
+					System.out.println("[Matchingservice] No records for this catering facility.");
 				}
 			} else {
-				System.out.println("[MatchingService] The token from the visit was invalid! Problem");
+				System.out.println("[MatchingService] The token from the visit was invalid!");
 			}
 		}
 		database.setCriticals(criticalRecordsOfToday);
@@ -434,10 +434,10 @@ public class Send extends Thread {
 				
 				
 			}else {
-				System.out.println("[Matchingservice] Should not get here...");
+				System.out.println("[Matchingservice] ERROR");
 			}
 		}else {
-			System.out.println("[Matchingservice] Is we're here we're kinda fucked.");
+			System.out.println("[Matchingservice] ERROR.");
 		}
 		
 	}
@@ -478,13 +478,13 @@ public class Send extends Thread {
 				}
 			}
 			if (!foundRecord) {
-				System.out.println("[Matchingservice] We did not find the record that was send with our acknowledge in our database, this should not happen!");
+				System.out.println("[Matchingservice] We did not find the record that was send with our acknowledge in our database!");
 			}
 			if (!foundPerson) {
-				System.out.println("[Matchingservice] We did not find the user in our record that was send with our acknowledge in our database, this should not happen!");
+				System.out.println("[Matchingservice] We did not find the user in our record that was send with our acknowledge in our database!");
 			}
 		}else {
-			System.out.println("[Matchingservice] We did not find the cfToken that was send with our acknowledge in our database, this should not happen!");
+			System.out.println("[Matchingservice] We did not find the cfToken that was send with our acknowledge in our database!");
 		}
 		database.setCriticals(criticalRecordsOfToday);
 		database.setMatchingService(matchingService);

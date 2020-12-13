@@ -234,7 +234,7 @@ public class VisitorClient {
 				//TODO Fix the error, the capsule of which we want to get data is encrypted so we can't get data from it
 				currentToken = token.getUnusedToken();
 				if (text.equals("")) {
-					System.out.println("Yeah this is not okay ~victor");
+					System.out.println("FATAL ERROR");
 				}
 				capsule = makeCapsule(text);
 				//capsule = new Capsule(capsule.getCurrentTimeInterval(), currentToken[0], currentToken[1],

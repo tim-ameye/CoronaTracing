@@ -68,7 +68,7 @@ public class Server {
 					e.printStackTrace();
 				}
 			} else if(input.equals("Save")) {
-				System.out.println("[MatchingService] The database has been updated, jk this command does absolutly noting.");
+				System.out.println("[MatchingService] The database has been updated.");
 				matchingService.getDatabase().setMatchingService(matchingService.getMatchingService());
 				matchingService.getDatabase().setCriticals(matchingService.getDatabase().getCriticals());
 				matchingService.getDatabase().printFile();

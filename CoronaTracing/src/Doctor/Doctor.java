@@ -4,24 +4,23 @@ import java.rmi.RemoteException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 
 public class Doctor {
-	private KeyPair keyPair;
+	private PrivateKey privateKey;
 	
 	public Doctor() throws NoSuchAlgorithmException {
-		keyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
+		
 	}
 
-	public void testConnection(String s) throws RemoteException {
-		System.out.println("[CONNECTION_TEST]: "+s);
+	public PrivateKey getPrivateKey() {
+		return privateKey;
 	}
 
-	public KeyPair getKeyPair() {
-		return keyPair;
+	public void setPrivateKey(PrivateKey privateKey) {
+		this.privateKey = privateKey;
 	}
 
-	public void setKeyPair(KeyPair keyPair) {
-		this.keyPair = keyPair;
-	}
+	
 	
 }

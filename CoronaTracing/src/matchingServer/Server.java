@@ -67,6 +67,8 @@ public class Server {
 				System.out.println("[MatchingService] The database has been updated, jk this command does absolutly noting.");
 				matchingService.getDatabase().setMatchingService(matchingService.getMatchingService());
 				matchingService.getDatabase().printFile();
+				matchingService.getDatabase().readFile();
+				matchingService.setMatchingService(matchingService.getDatabase().getMatchingService());
 			} else if(input.equals("Expired")) {
 				System.out.println("[MatchingService] Out of date hashes and tokens have been removed. Save to put the changes in the files.");
 			}

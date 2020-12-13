@@ -86,4 +86,8 @@ public class TokenList implements Serializable {
 	public void shuffle() {
 		Collections.shuffle(tokens);
 	}
+
+	public void addAll(ArrayList<String> pseudo) {
+		for(String s: pseudo) tokens.add(s);	
+	}
 }

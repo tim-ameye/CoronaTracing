@@ -136,6 +136,12 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 			response.setMessage("registered");
 		}
 		SecretKey sessionKey = keyGenerator.generateKey();
+		try {
+			db.printFile();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return response.encrypt(sessionKey, pubKey);
 	}
 
@@ -204,6 +210,12 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 			response.setMessage("registered");
 		}
 		SecretKey sessionKey = keyGenerator.generateKey();
+		try {
+			db.printFile();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return response.encrypt(sessionKey, pubKey);
 	}
 
@@ -268,17 +280,17 @@ public class Registrar extends UnicastRemoteObject implements RegistrarInterface
 	public TokenList getCfHashesFromToday() {
 		TokenList tokenList = new TokenList();
 		for(CateringFacility cf: db.getCateringFacilities()) {
-			String pseudo = cf.nymToday();
-			if(pseudo == null) {
+			ArrayList<String> pseudo = cf.allNym();
+			if(pseudo.isEmpty()) {
 				try {
 					cf.generateHashes(10, secretKeyFactory, secureRandom, messageDigest);
 				} catch (InvalidKeySpecException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				pseudo = cf.nymToday();
+				pseudo = cf.allNym();
 			}
-			tokenList.add(pseudo);
+			tokenList.addAll(pseudo);
 		}
 		tokenList.shuffle();
 		SecretKey sessionKey = keyGenerator.generateKey();

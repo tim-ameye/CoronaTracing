@@ -1,5 +1,6 @@
 package Doctor;
 
+import java.io.Serializable;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -16,8 +17,12 @@ import javax.crypto.spec.SecretKeySpec;
 
 import Visitor.Visit;
 
-public class Infection {
+public class Infection implements Serializable{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -6073634602363836908L;
 	private ArrayList<String> signedVisits;
 	private ArrayList<String> unsignedVisits;
 	Signature signature;
@@ -30,8 +35,12 @@ public class Infection {
 	
 	public void signSignature(Doctor doctor) {
 		try {
-			signature.initSign(doctor.getKeyPair().getPrivate());
+			signature = Signature.getInstance("SHA512withRSA");
+			signature.initSign(doctor.getPrivateKey());
 		} catch (InvalidKeyException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -54,8 +63,8 @@ public class Infection {
 	}
 
 	public void add(Visit visit) {
-		unsignedVisits.add(visit.toExtendedString());
-		byte[] visitByte = visit.toExtendedString().getBytes();
+		unsignedVisits.add(visit.toEncrypt());
+		byte[] visitByte = visit.toEncrypt().getBytes();
 		try {
 			signature.update(visitByte);
 			byte[] signed = signature.sign();
@@ -80,7 +89,7 @@ public class Infection {
 			for(String visit : signedVisits) {
 				byte[] encrypt = encryptText.doFinal(visit.getBytes());
 				String encryptedVisit = Base64.getEncoder().encodeToString(encrypt);				
-				encrypted.unsignedVisits.add(encryptedVisit);
+				encrypted.signedVisits.add(encryptedVisit);
 			}
 			Cipher encryptSession = Cipher.getInstance("RSA");
 			encryptSession.init(Cipher.ENCRYPT_MODE, pk);
@@ -107,7 +116,7 @@ public class Infection {
 			}
 			for(String visit : signedVisits) {
 				byte[] decrypt = cipherToken.doFinal(Base64.getDecoder().decode(visit));
-				decrypted.unsignedVisits.add(new String(decrypt));
+				decrypted.signedVisits.add(new String(decrypt));
 			}
 		} catch(Exception e) {
 			e.printStackTrace();

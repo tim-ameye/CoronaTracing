@@ -14,3 +14,6 @@ And you can start one of the following:
 - CateringClient (package cateringFacility)
 - DoctorClient (package Doctor)
 
+The registrar server and matching server can be saved by
+typeing "Save" in the console. 
+They are automatically saved after each newely joined user/cateringfacility/capsule.

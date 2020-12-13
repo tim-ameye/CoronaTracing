@@ -100,9 +100,7 @@ public class Database {
 					records.add(r);
 					if(r.isCritical()) {
 						if(criticals.containsKey(cfToken)) {
-							List<Record> temp = criticals.get(cfToken);
-							temp.add(r);
-							criticals.put(cfToken, temp);
+							criticals.get(cfToken).add(r);
 						} else {
 							List<Record> temp = new ArrayList<>();
 							temp.add(r);

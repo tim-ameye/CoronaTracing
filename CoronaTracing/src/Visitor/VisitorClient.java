@@ -239,7 +239,7 @@ public class VisitorClient {
 				capsule = makeCapsule(text);
 				//capsule = new Capsule(capsule.getCurrentTimeInterval(), currentToken[0], currentToken[1],
 				//		capsule.getQrToken());
-				if (sendCapsule(capsule, "")) 
+				if (sendCapsule(capsule, text)) 
 					return true;
 			} else if (response.equals("Token not valid")) {
 				System.out.println("You have submitted an invalid token. Please do not try to hack the system!");
@@ -251,7 +251,7 @@ public class VisitorClient {
 				currentToken = token.getUnusedToken();
 				capsule = new Capsule(capsule.getCurrentTimeInterval(), currentToken[0], currentToken[1],
 						capsule.getQrToken());
-				if (sendCapsule(capsule, ""))
+				if (sendCapsule(capsule, text))
 					return true;
 			} else if (response.equals("")) {
 				System.out.println("An error occured.");

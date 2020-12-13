@@ -242,9 +242,7 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 						// adding this record to the is critical
 						String criticalRecord = currentHashString + "_" +visit.getBeginTime().toString();
 						if(criticalRecordsOfToday.containsKey(visit.getCateringFacilityToken())) {
-							List<Record> temp = criticalRecordsOfToday.get(visit.getCateringFacilityToken());
-							temp.add(record);
-							criticalRecordsOfToday.put(visit.getCateringFacilityToken(), temp);
+							criticalRecordsOfToday.get(visit.getCateringFacilityToken()).add(record);
 						} else {
 							List<Record> temp = new ArrayList<>();
 							temp.add(record);

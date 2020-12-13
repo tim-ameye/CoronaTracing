@@ -135,7 +135,7 @@ public class DoctorClient {
 				Instant instant = Instant.parse(info[0]).truncatedTo(ChronoUnit.DAYS);
 				if(instant.equals(day.truncatedTo(ChronoUnit.DAYS))) {
 					Visit visit = new Visit(Integer.parseInt(info[1]),info[2],info[3],info[5]);
-					visit.setBeginTime(instant);
+					visit.setBeginTime(Instant.parse(info[0]));
 					infection.add(visit);
 				}
 			}

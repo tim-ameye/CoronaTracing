@@ -60,7 +60,7 @@ public class VisitorClient {
 	private PublicKey mixingPubKey;
 	private PublicKey matchingPubKey;
 	private PublicKey registrarPubKey;
-	private RegisteringVisits rv;
+	private RegisteringVisits register;
 
 	public VisitorClient() throws RemoteException, NotBoundException {
 		myRegistry = LocateRegistry.getRegistry("localhost", 55545);
@@ -191,14 +191,21 @@ public class VisitorClient {
 		return capsule;
 	}
 
-	public class RegisteringVisits extends Thread {
+	public class RegisteringVisits implements Runnable {
 		
 		String text;
+		private Thread worker;
+		private volatile boolean exit = false;
+		
 		
 		public RegisteringVisits(String text) {
 			this.text = text;
 		}
-		private volatile boolean exit = false;
+		
+		public void start() {
+			worker = new Thread(this);
+			worker.start();
+		}
 
 		public void run() {
 			while(!exit) {
@@ -226,7 +233,7 @@ public class VisitorClient {
 			String response = responseEncrypted.decrypt(visitor.getPrivateKey()).getMessage();
 			System.out.println(response);
 			if (response.equals("Accepted")) {
-				Thread register = new Thread(new RegisteringVisits(qrCode));
+				register = new RegisteringVisits(qrCode);
 				register.start();
 				return true;
 			}
@@ -406,7 +413,7 @@ public class VisitorClient {
 	}
 
 	public void stopRv() {
-		rv.stopThread();
+		register.stopThread();
 		
 	}
 

@@ -52,7 +52,7 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 
 	private List<String> allTokens;
 	private Map<String, List<Record>> matchingService; 	// key identifier catering facility and contains list of days
-	private List<String> criticalRecordsOfToday;		// contains string: hashedCFToken_instant
+	private Map<String, List<Record>> criticalRecordsOfToday;		// contains string: hashedCFToken_instant
 	private Database database;
 	private String currentHashString;
 	private PrivateKey privateKey;
@@ -66,6 +66,7 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 
 	public MatchingService() throws RemoteException, FileNotFoundException, NoSuchAlgorithmException, NotBoundException, KeyStoreException {
 		matchingService = new HashMap<>();
+		criticalRecordsOfToday = new HashMap<>();
 		allTokens = new ArrayList<>();
 		File file = new File("files\\MatchingService");
 		if(!file.exists()) {
@@ -74,15 +75,12 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 		database = new Database("files\\MatchingService\\Database.txt");
 		database.readFile();
 		matchingService = database.getMatchingService();
+		criticalRecordsOfToday = database.getCriticals();
 		System.out.println("[DATABASE] Initialised!");
 		
 		Registry myRegistry = LocateRegistry.getRegistry("localhost", 55545);
 		registrar = (RegistrarInterface) myRegistry.lookup("Registrar");
 		
-		criticalRecordsOfToday = new ArrayList<>();
-		
-		
-
 		this.secureRandom = new SecureRandom();
 		this.keyGenerator = KeyGenerator.getInstance("AES");
 		keyGenerator.init(256, secureRandom);
@@ -205,6 +203,7 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 			// synchronise database
 			database.readFile();
 			matchingService = database.getMatchingService();
+			criticalRecordsOfToday = database.getCriticals();
 
 			// step 1: make sure we were sent valid information!
 			if(allTokens.isEmpty())
@@ -242,8 +241,16 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 						}
 						// adding this record to the is critical
 						String criticalRecord = currentHashString + "_" +visit.getBeginTime().toString();
-						criticalRecordsOfToday.add(criticalRecord);
-						Thread send = new Thread(new Send(this, criticalRecord, visit.getBeginTime()));
+						if(criticalRecordsOfToday.containsKey(visit.getCateringFacilityToken())) {
+							List<Record> temp = criticalRecordsOfToday.get(visit.getCateringFacilityToken());
+							temp.add(record);
+							criticalRecordsOfToday.put(visit.getCateringFacilityToken(), temp);
+						} else {
+							List<Record> temp = new ArrayList<>();
+							temp.add(record);
+							criticalRecordsOfToday.put(visit.getCateringFacilityToken(), temp);
+						}
+						Thread send = new Thread(new Send(this, visit.getCateringFacilityToken(), visit.getBeginTime()));
 						send.start();
 						// Starting countdown timer that will check if users are informed or not.
 						System.out.println("start countdown");
@@ -262,6 +269,8 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 				System.out.println("[MatchingService] The token from the visit was invalid! Problem");
 			}
 		}
+		database.setCriticals(criticalRecordsOfToday);
+		database.setMatchingService(matchingService);
 		database.printFile();
 
 	}
@@ -284,7 +293,7 @@ public class Send extends Thread {
 			long current = System.currentTimeMillis();
 			long start = System.currentTimeMillis();
 			while(!exit) {
-				if(current > start +1800) {
+				if(current > start +3000000) {
 					start = System.currentTimeMillis();
 					try {
 						mp.contactUsers(cfToken, i);
@@ -298,6 +307,7 @@ public class Send extends Thread {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					};
+					exit = true;
 				}
 				current = System.currentTimeMillis();
 			}
@@ -347,8 +357,10 @@ public class Send extends Thread {
 		
 		
 		TokenList encrypted = new TokenList();
-		for (int i = 0; i < criticalRecordsOfToday.size(); i++) {
-			encrypted.add(criticalRecordsOfToday.get(i));
+		for (Entry<String, List<Record>> entry: criticalRecordsOfToday.entrySet()) {
+			for(Record rec: entry.getValue()) {
+				encrypted.add(entry.getKey() + "_" + rec.getTime().toString());
+			}
 		}
 		SecretKey sessionKey = keyGenerator.generateKey();
 		TokenList temp = encrypted.encrypt(sessionKey, publicKey);
@@ -356,7 +368,7 @@ public class Send extends Thread {
 		return temp;
 	}
 
-	public void setCriticalRecordsOfToday(List<String> criticalRecordsOfToday) {
+	public void setCriticalRecordsOfToday(Map<String, List<Record>> criticalRecordsOfToday) {
 		this.criticalRecordsOfToday = criticalRecordsOfToday;
 	}
 
@@ -376,8 +388,6 @@ public class Send extends Thread {
 	}
 
 	void contactUsers(String cfToken, Instant instant) throws FileNotFoundException, RemoteException, NotBoundException {
-		database.readFile();
-		matchingService = database.getMatchingService();
 		Record criticRecord = null;
 		if(matchingService.containsKey(cfToken)) {
 			List<Record> record = matchingService.get(cfToken);
@@ -398,8 +408,10 @@ public class Send extends Thread {
 				for (int i = 0; i < informed.size(); i++) {
 					if (!informed.get(i)) {
 						notInformed.add(userTokens.get(i));
+						
 					}
 				}
+				criticRecord.setAllInformed();
 				if (notInformed.size() > 0) {
 					System.out.println("[Matchingservice] Trying to contact users who came into contact with an infected person, but were not informed yet");
 					
@@ -441,18 +453,19 @@ public class Send extends Thread {
 	@Override
 	public void sendAck(Acknowledge ack) throws FileNotFoundException {
 		// step one decrypt this acknowlegde	
-		Acknowledge acknowledge = ack.Decrypt(privateKey);
+		Acknowledge acknowledge = ack.decrypt(privateKey);
 		
 		// search the matching record and set the user that was send with this ack on informed!
 		database.readFile();
 		matchingService  = database.getMatchingService();
+		criticalRecordsOfToday = database.getCriticals();
 		
 		if (matchingService.containsKey(acknowledge.getQrToken())) {
 			List<Record> records = matchingService.get(acknowledge.getQrToken());
 			boolean foundRecord = false;
 			boolean foundPerson = false;
 			for (Record r : records) {
-				if (r.getTime().toString().equals(acknowledge.getInstant()) ) {
+				if (r.getTime().toString().equals(acknowledge.getInstant().toString()) ) {
 					foundRecord = true;
 					List<String> userTokens = r.getTokens();
 					

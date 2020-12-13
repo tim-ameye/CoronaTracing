@@ -19,7 +19,8 @@ public class Database {
 	private File dbFile;
 	private Logger logger;
 	private Map<String, List<Record>> matchingService; // key identifier catering facility and contains list of days
-
+	private Map<String, List<Record>> criticals;
+	
 	//
 	// we're going to work with the same map from matchingService but that shouldn't
 	// matter too much
@@ -35,6 +36,7 @@ public class Database {
 		records = new ArrayList<>();
 		logger = Logger.getLogger("Database");
 		matchingService = new HashMap<>();
+		criticals = new HashMap<>();
 	}
 
 	// TODO not yet tested these methods, but think should work with a few tweeks
@@ -96,12 +98,33 @@ public class Database {
 					}
 					r.setInformed(informed);
 					records.add(r);
+					if(r.isCritical()) {
+						if(criticals.containsKey(cfToken)) {
+							List<Record> temp = criticals.get(cfToken);
+							temp.add(r);
+							criticals.put(cfToken, temp);
+						} else {
+							List<Record> temp = new ArrayList<>();
+							temp.add(r);
+							criticals.put(cfToken, temp);
+						}
+					}
 
 				}
 				line = sc.nextLine();
 			}
 		}
+		
 		sc.close();
+	}
+	
+
+	public Map<String, List<Record>> getCriticals() {
+		return criticals;
+	}
+
+	public void setCriticals(Map<String, List<Record>> criticals) {
+		this.criticals = criticals;
 	}
 
 	public void printFile() throws FileNotFoundException {

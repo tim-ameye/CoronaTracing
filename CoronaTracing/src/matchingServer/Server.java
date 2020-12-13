@@ -14,6 +14,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Scanner;
 import java.util.logging.Level;
 
@@ -47,7 +48,10 @@ public class Server {
 			}
 			
 			if (date.toInstant().truncatedTo(ChronoUnit.DAYS).plus(12,ChronoUnit.HOURS) == date.toInstant().truncatedTo(ChronoUnit.HOURS)) {
-				matchingService.setCriticalRecordsOfToday(new ArrayList<>());
+				matchingService.setCriticalRecordsOfToday(new HashMap<>());
+				matchingService.getDatabase().readFile();
+				matchingService.setMatchingService(matchingService.getDatabase().getMatchingService());
+				matchingService.setCriticalRecordsOfToday(matchingService.getDatabase().getCriticals());
 			}
 			
 			if(input.equals("Start")) {
@@ -66,9 +70,11 @@ public class Server {
 			} else if(input.equals("Save")) {
 				System.out.println("[MatchingService] The database has been updated, jk this command does absolutly noting.");
 				matchingService.getDatabase().setMatchingService(matchingService.getMatchingService());
+				matchingService.getDatabase().setCriticals(matchingService.getDatabase().getCriticals());
 				matchingService.getDatabase().printFile();
 				matchingService.getDatabase().readFile();
 				matchingService.setMatchingService(matchingService.getDatabase().getMatchingService());
+				matchingService.setCriticalRecordsOfToday(matchingService.getDatabase().getCriticals());
 			} else if(input.equals("Expired")) {
 				System.out.println("[MatchingService] Out of date hashes and tokens have been removed. Save to put the changes in the files.");
 			}

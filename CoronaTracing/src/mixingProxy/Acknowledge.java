@@ -1,5 +1,6 @@
 package mixingProxy;
 
+import java.io.Serializable;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.time.Instant;
@@ -9,7 +10,11 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
-public class Acknowledge {
+public class Acknowledge implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 899450076297568615L;
 	private String userTokenSigned;
 	private String qrToken;
 	private String instant;
@@ -60,9 +65,9 @@ public class Acknowledge {
 			encryptText.init(Cipher.ENCRYPT_MODE, sessionKey);
 			byte[] time = encryptText.doFinal(instant.toString().getBytes());
 			encrypted.instant = Base64.getEncoder().encodeToString(time);
-			byte[] hash = encryptText.doFinal(Base64.getDecoder().decode(qrToken));
+			byte[] hash = encryptText.doFinal(qrToken.getBytes());
 			encrypted.qrToken = Base64.getEncoder().encodeToString(hash);
-			byte[] signed = encryptText.doFinal(Base64.getDecoder().decode(userTokenSigned));
+			byte[] signed = encryptText.doFinal(userTokenSigned.getBytes());
 			encrypted.userTokenSigned = Base64.getEncoder().encodeToString(signed);
 			Cipher encryptSession = Cipher.getInstance("RSA");
 			encryptSession.init(Cipher.ENCRYPT_MODE, pk);
@@ -74,7 +79,7 @@ public class Acknowledge {
 		return encrypted;
 	}
 	
-	public Acknowledge Decrypt(PrivateKey pk) {
+	public Acknowledge decrypt(PrivateKey pk) {
 		Acknowledge decrypted = new Acknowledge();
 		try {
 			Cipher cipherKey = Cipher.getInstance("RSA");
@@ -86,9 +91,9 @@ public class Acknowledge {
 			byte[] time = cipherToken.doFinal(Base64.getDecoder().decode(instant.toString()));
 			decrypted.instant = new String(time);
 			byte[] hash = cipherToken.doFinal(Base64.getDecoder().decode(qrToken));
-			decrypted.qrToken = Base64.getEncoder().encodeToString(hash);
+			decrypted.qrToken = new String(hash);
 			byte[] signed = cipherToken.doFinal(Base64.getDecoder().decode(userTokenSigned));
-			decrypted.userTokenSigned = Base64.getEncoder().encodeToString(signed);
+			decrypted.userTokenSigned = new String(signed);
 		} catch(Exception e) {
 			e.printStackTrace();
 		}

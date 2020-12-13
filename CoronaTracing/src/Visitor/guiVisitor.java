@@ -71,6 +71,12 @@ public class guiVisitor {
 	 */
 	public guiVisitor(VisitorClient visitorClient) {
 		this.visitorClient = visitorClient;
+		try {
+			visitorClient.setGUI(this);
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		sentences = new ArrayList<>();
 		sentences.add("Cheers!");

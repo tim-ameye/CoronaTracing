@@ -283,14 +283,14 @@ public class VisitorClient {
 			
 			//check if this currenthash equals one of our visits
 			for (int j = 0; j < visits.size(); j++) {
-				if (visits.get(j).getCateringFacilityToken().equals(currentHashString)) {
+				if (visits.get(j).getBusinessNumber().equals(currentHashString)) {
 					// we already were at the same cateringfacility :o
 					if (visits.get(j).getBeginTime().toString().equals(visitInstant)) {
 						//damn we were there at the same time interval 
 						System.out.println("[WARNING] You were in a catering facility at the same time of an infected person!");
 						System.out.println("[WARNING] sending acknowledge to to Mixing proxy so the Matching service will now we were informed!");
 						ui.informUser();
-						sendAcknowledge(visits.get(j).getCateringFacilityToken(), visits.get(j).getBeginTime(), visits.get(j).getUserTokenSigned());
+						sendAcknowledge(visits.get(j).getBusinessNumber(), visits.get(j).getBeginTime(), visits.get(j).getUserTokenSigned());
 						
 					}
 				}
@@ -311,7 +311,7 @@ public class VisitorClient {
 		SecretKey sessionKey = keyGenerator.generateKey();
 
 		// encrypt our acknowledge with the public key of matchingservice and a session key
-		ack.encrypt(sessionKey, matchingPubKey);
+		ack = ack.encrypt(sessionKey, matchingPubKey);
 		
 		// send this encrypted acknowledge to our mixingproxy
 		mixingProxyServer.sendAndRecieveAcknowledge(ack);

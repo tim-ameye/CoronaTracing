@@ -64,4 +64,9 @@ public class Record {
 		tokens.add(token);
 		informed.add(false);
 	}
+	
+	public void setAllInformed() {
+		for(boolean b: informed) b = true;
+		this.critical = false;
+	}
 }

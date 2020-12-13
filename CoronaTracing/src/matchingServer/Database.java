@@ -56,7 +56,7 @@ public class Database {
 				List<Record> records = new ArrayList<>();
 				matchingService.put(cfToken, records);
 
-				for (int i = 1; i < timeIntervals.length; i++) {
+				for (int i = 0; i < timeIntervals.length; i++) {
 					Instant date = Instant.parse(timeIntervals[i]);
 					String time = timeIntervals[i].toString();
 					String day = time.substring(0, 10);
@@ -87,13 +87,15 @@ public class Database {
 					for (int j = 0; j < userTokens.size(); j++) {
 						// adding all the usertokens from the file
 						r.addToken(userTokens.get(j));
-						r.setInformed(informed);
+						
 						if (critical) {
 							r.setCritical(true);
 						} else {
 							r.setCritical(false);
 						}
 					}
+					r.setInformed(informed);
+					records.add(r);
 
 				}
 				line = sc.nextLine();
@@ -138,13 +140,16 @@ public class Database {
 				}
 				fpw.println(firstLine);
 
-				fpw.println(getTokens(r)); // in the file set all the tokens
+				for(int i = 0; i < r.getTokens().size(); i++) {
+					fpw.println(r.getTokens().get(i) + "_" + r.getInformed().get(i));
+				}
+				//fpw.println(getTokens(r)); // in the file set all the tokens
 				if (first) {
 					pw.print(r.getTime());
 					first = false;
+				} else {
+					pw.print("_" + r.getTime()); // In the database file, write all the keys aka different timeInstances
 				}
-				pw.print("_" + r.getTime()); // In the database file, write all the keys aka different timeInstances
-
 				fpw.flush();
 				fpw.close(); // i think i need to close here
 			}
@@ -152,8 +157,9 @@ public class Database {
 			pw.println("#End");
 			pw.flush();
 
-			pw.close();
 		}
+
+		pw.close();
 	}
 
 	private String getTokens(Record r) {

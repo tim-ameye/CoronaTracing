@@ -79,7 +79,7 @@ public class CateringFacility implements Serializable {
 		Instant currentDay = date.toInstant().truncatedTo(ChronoUnit.DAYS);
 		
 		if (hash != null) {
-			return hash.getPseudonyms().get(currentDay);
+			return hash.getPseudonyms().get(currentDay.toString());
 		}else {
 			System.out.println("[CATERINGFACILITY] the hashes variable is null, fatal error.");
 		}

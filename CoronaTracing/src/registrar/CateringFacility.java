@@ -9,6 +9,7 @@ import java.security.UnrecoverableKeyException;
 import java.security.spec.InvalidKeySpecException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
 
@@ -108,6 +109,10 @@ public class CateringFacility {
 		Date date = new Date(System.currentTimeMillis());
 		Instant today = date.toInstant().truncatedTo(ChronoUnit.DAYS);
 		return hash.get(today);
+	}
+	
+	public ArrayList<String> allNym() {
+		return hash.getAllPsuedos();
 	}
 	
 	public Hash getHashFromToday(){

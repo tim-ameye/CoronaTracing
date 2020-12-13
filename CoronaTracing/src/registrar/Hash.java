@@ -5,9 +5,11 @@ import java.security.MessageDigest;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -99,6 +101,14 @@ public class Hash implements Serializable {
 			e.printStackTrace();
 		}
 		return decrypted;
+	}
+
+	public ArrayList<String> getAllPsuedos() {
+		ArrayList<String> response = new ArrayList<>();
+		for(Entry<String, String> entry: pseudonyms.entrySet()) {
+			response.add(entry.getValue());
+		}
+		return response;
 	}
 	
 }

@@ -80,5 +80,9 @@ public class Visit {
 		return this.randomNumber + "_" + this.userTokenSigned + "_" + this.userTokenUnsigned + "_"
 				+ this.cateringFacilityToken + "_" + this.beginTime + "_" +this.businessNumber;
 	}
+	
+	public String toEncrypt() {
+		return this.randomNumber + "_"+ this.userTokenSigned + "_" + this.userTokenUnsigned + "_" + this.cateringFacilityToken + "_" + this.getBeginTime().toString();
+	}
 
 }

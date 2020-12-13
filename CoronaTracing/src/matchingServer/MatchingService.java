@@ -39,6 +39,8 @@ import Doctor.Infection;
 import Visitor.Visit;
 import mixingProxy.Acknowledge;
 import mixingProxy.Capsule;
+import mixingProxy.MixingProxy;
+import mixingProxy.MixingProxy.Send;
 import registrar.RegistrarInterface;
 import registrar.TokenList;
 
@@ -71,6 +73,7 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 		}
 		database = new Database("files\\MatchingService\\Database.txt");
 		database.readFile();
+		matchingService = database.getMatchingService();
 		System.out.println("[DATABASE] Initialised!");
 		
 		Registry myRegistry = LocateRegistry.getRegistry("localhost", 55545);
@@ -97,6 +100,8 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		getNewTokens();
 		
 	}
 
@@ -133,10 +138,10 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 
 			boolean match = false;
 			for (Record r : records) {
-				if (r.getTime() == capsuleTimeInterval) {
+				if (r.getTime().equals(capsuleTimeInterval)) {
 					match = true;
 					// adding our user token to this record
-					r.getTokens().add(userToken);
+					r.addToken(userToken);
 				}
 			}
 			if (!match) {
@@ -174,9 +179,9 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 		
 		Signature sig = Signature.getInstance("SHA512withRSA");
 		sig.initVerify(doctorPubKey);
-		sig.update((infectedVisits.get(0).getBytes()));
+		sig.update(infectedVisits.get(0).getBytes());
 		
-		boolean b = sig.verify(signedInfectedVisits.get(0).getBytes());
+		boolean b = sig.verify(Base64.getDecoder().decode(signedInfectedVisits.get(0)));
 		if (!b) {
 			System.out.println("[Matchingservice] Token not valid, fuck!");
 			return;
@@ -202,6 +207,16 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 			matchingService = database.getMatchingService();
 
 			// step 1: make sure we were sent valid information!
+			if(allTokens.isEmpty())
+				try {
+					getNewTokens();
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (NotBoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			if (checkValid(visit.getCateringFacilityToken(), visit.getRandomNumber())) {
 				System.out.println("[Matchingservice] The token from the visit was valid!");
 
@@ -228,7 +243,8 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 						// adding this record to the is critical
 						String criticalRecord = currentHashString + "_" +visit.getBeginTime().toString();
 						criticalRecordsOfToday.add(criticalRecord);
-						
+						Thread send = new Thread(new Send(this, criticalRecord, visit.getBeginTime()));
+						send.start();
 						// Starting countdown timer that will check if users are informed or not.
 						System.out.println("start countdown");
 						new Countdown(1296000, this, visit.getCateringFacilityToken(), visit.getBeginTime());	
@@ -248,6 +264,49 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 		}
 		database.printFile();
 
+	}
+	
+public class Send extends Thread {
+		
+		MatchingService mp;
+		String cfToken;
+		Instant i;
+		
+		public Send(MatchingService mp, String cfToken, Instant i) {
+			this.mp = mp;
+			this.cfToken = cfToken;
+			this.i = i;
+		}
+		
+		private volatile boolean exit = false;
+
+		public void run() {
+			long current = System.currentTimeMillis();
+			long start = System.currentTimeMillis();
+			while(!exit) {
+				if(current > start +1800) {
+					start = System.currentTimeMillis();
+					try {
+						mp.contactUsers(cfToken, i);
+					} catch (FileNotFoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (RemoteException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (NotBoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					};
+				}
+				current = System.currentTimeMillis();
+			}
+		}
+		
+		public void stopThread() {
+			exit = true;
+		}
+			
 	}
 
 	private boolean checkValid(String cateringFacilityToken, int randomNumber) throws NoSuchAlgorithmException {

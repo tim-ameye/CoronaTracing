@@ -55,7 +55,7 @@ public class Server {
 			}
 			
 			if(input.equals("Start")) {
-				System.out.println("[MatchingService] The database has been initialised. Type 'Start' to run the server.");
+				System.out.println("[MatchingService] The database has been initialised.");
 				
 				
 				

@@ -76,7 +76,7 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 		database.readFile();
 		matchingService = database.getMatchingService();
 		criticalRecordsOfToday = database.getCriticals();
-		System.out.println("[DATABASE] Initialised!");
+		System.out.println("[DATABASE] Initialised!  Type 'Start' to run the server.");
 		
 		Registry myRegistry = LocateRegistry.getRegistry("localhost", 55545);
 		registrar = (RegistrarInterface) myRegistry.lookup("Registrar");
@@ -164,7 +164,7 @@ public class MatchingService extends UnicastRemoteObject implements MatchingServ
 		}
 		// normally is now the cateringFacilities Map updated and so we should reprint
 		// it so it's kept up to date
-		System.out.println("[MATCHINGSERVICE] Database succesfully synchronised and the caplsule was added.");
+		System.out.println("[MATCHINGSERVICE] Database succesfully synchronised and the capsule was added.");
 
 	}
 

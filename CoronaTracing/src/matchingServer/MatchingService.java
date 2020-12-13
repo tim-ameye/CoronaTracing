@@ -470,9 +470,8 @@ public class Send extends Thread {
 					for (int i = 0; i < userTokens.size(); i++) {
 						if (userTokens.get(i).equals(acknowledge.getUserTokenSigned())) {
 							foundPerson = true;
-							List<Boolean> inf =r.getInformed();
-							inf.set(i, true);
-							r.setInformed(inf);
+							r.getInformed().set(i, true);
+							System.out.println("We zijn er");
 						}
 					}
 					
@@ -487,7 +486,9 @@ public class Send extends Thread {
 		}else {
 			System.out.println("[Matchingservice] We did not find the cfToken that was send with our acknowledge in our database, this should not happen!");
 		}
-		
+		database.setCriticals(criticalRecordsOfToday);
+		database.setMatchingService(matchingService);
+		database.printFile();
 		
 		
 	}

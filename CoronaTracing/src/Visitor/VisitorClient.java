@@ -193,10 +193,10 @@ public class VisitorClient {
 
 	public class RegisteringVisits extends Thread {
 		
-		Capsule capsule;
+		String text;
 		
 		public RegisteringVisits(String text) {
-			capsule = makeCapsule(text);
+			this.text = text;
 		}
 		private volatile boolean exit = false;
 
@@ -206,7 +206,7 @@ public class VisitorClient {
 				long start = System.currentTimeMillis();
 				if(current > start +1800000) {
 					start = System.currentTimeMillis();
-					sendCapsule(capsule,"");
+					sendCapsule(makeCapsule(text),"");
 					exit = true;
 				}
 				current = System.currentTimeMillis();
@@ -226,8 +226,8 @@ public class VisitorClient {
 			String response = responseEncrypted.decrypt(visitor.getPrivateKey()).getMessage();
 			System.out.println(response);
 			if (response.equals("Accepted")) {
-				rv = new RegisteringVisits(qrCode);
-				rv.start();
+				Thread register = new Thread(new RegisteringVisits(qrCode));
+				register.start();
 				return true;
 			}
 			else if (response.equals("Token already used")) {
@@ -357,6 +357,7 @@ public class VisitorClient {
 					+ visit.getUserTokenSigned() + "_" + visit.getUserTokenUnsigned() + "_" + visit.getBusinessNumber()
 					+ "_" + visit.getCateringFacilityToken();
 			printWriter.println(stringToAppend);
+			printWriter.flush();
 			printWriter.close();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -407,6 +408,10 @@ public class VisitorClient {
 	public void stopRv() {
 		rv.stopThread();
 		
+	}
+
+	public int getRandom() {
+		return Integer.parseInt(qrCode.split("_")[0]);
 	}
 
 }

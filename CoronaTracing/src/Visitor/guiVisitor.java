@@ -202,6 +202,13 @@ public class guiVisitor {
 		panelLogin.add(textField_firstName);
 		textField_firstName.setColumns(10);
 		
+		JLabel lblCheers = new JLabel(sentences.get(0));
+		lblCheers.setHorizontalAlignment(SwingConstants.CENTER);
+		lblCheers.setFont(new Font("Verdana", Font.BOLD, 20));
+		lblCheers.setForeground(new Color(0, 0, 0));
+		lblCheers.setBounds(0, 180, 384, 100);
+		panelSucces.add(lblCheers);
+		
 		textField_lastName = new JTextField();
 		textField_lastName.setHorizontalAlignment(SwingConstants.CENTER);
 		textField_lastName.setColumns(10);
@@ -325,6 +332,7 @@ public class guiVisitor {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
+					lblCheers.setText(sentences.get(visitorClient.getRandom()%10));
 					panelSucces.setVisible(true);
 					panelScan.setVisible(false);
 				} else {
@@ -383,12 +391,7 @@ public class guiVisitor {
 		lblNewLabel_1.setBounds(10, 160, 364, 30);
 		panelSucces.add(lblNewLabel_1);
 		
-		JLabel lblCheers = new JLabel(sentences.get(number));
-		lblCheers.setHorizontalAlignment(SwingConstants.CENTER);
-		lblCheers.setFont(new Font("Verdana", Font.BOLD, 20));
-		lblCheers.setForeground(new Color(0, 0, 0));
-		lblCheers.setBounds(0, 180, 384, 100);
-		panelSucces.add(lblCheers);
+		
 		
 		JButton btnEndVisit = new JButton("End visit!");
 		btnEndVisit.addActionListener(new ActionListener() {

@@ -175,11 +175,11 @@ public class Database {
 				fpw.close(); // i think i need to close here
 			}
 			pw.println();
-			pw.println("#End");
+			
 			pw.flush();
 
 		}
-
+		pw.println("#End");
 		pw.close();
 	}
 
